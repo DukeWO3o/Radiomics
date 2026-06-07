@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 
 import pandas as pd
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
@@ -32,10 +33,16 @@ from sklearn.calibration import calibration_curve
 plt.rcParams['font.sans-serif'] = ['Arial', 'SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
+# === 路径配置（基于脚本自身位置） ===
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "06_Modelling", "06_model")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 # 1. 读取已标准化的训练集和验证集
 print("正在加载数据...")
-train_data = pd.read_excel("F:/2023/Pyradiomics结果/第五次尝试/05c_feature_importance_影像+年龄/mRMR/train_mrmr_影像+年龄10特征.xlsx")
-valid_data = pd.read_excel("F:/2023/Pyradiomics结果/第五次尝试/05c_feature_importance_影像+年龄/mRMR/val_mrmr_影像+年龄10特征.xlsx")
+train_data = pd.read_excel(os.path.join(SCRIPT_DIR, "train_mrmr_影像+年龄10特征.xlsx"))
+valid_data = pd.read_excel(os.path.join(SCRIPT_DIR, "val_mrmr_影像+年龄10特征.xlsx"))
 
 X_train = train_data.drop(columns=['label'])
 y_train = train_data['label']
@@ -191,7 +198,7 @@ for name, config in models.items():
     best_models[name] = best_model
 
     # 保存模型
-    joblib.dump(best_model, f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_{name}_best_model.pkl")
+    joblib.dump(best_model, os.path.join(OUTPUT_DIR, f"06_{name}_best_model.pkl"))
 
     # 训练集评估
     y_train_pred = best_model.predict(X_train)
@@ -256,7 +263,7 @@ for name, config in models.items():
     disp = ConfusionMatrixDisplay(confusion_matrix=cm_train)
     disp.plot(cmap="Blues")
     plt.title(f"Train Confusion Matrix - {name}")
-    plt.savefig(f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Train_ConfusionMatrix_{name}.svg", dpi=300,format="svg")
+    plt.savefig(os.path.join(OUTPUT_DIR, f"06_Train_ConfusionMatrix_{name}.svg"), dpi=300,format="svg")
     plt.close()
 
     # 验证集混淆矩阵
@@ -264,7 +271,7 @@ for name, config in models.items():
     disp = ConfusionMatrixDisplay(confusion_matrix=cm_valid)
     disp.plot(cmap="Blues")
     plt.title(f"Valid Confusion Matrix - {name}")
-    plt.savefig(f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Valid_ConfusionMatrix_{name}.svg", dpi=300,format="svg")
+    plt.savefig(os.path.join(OUTPUT_DIR, f"06_Valid_ConfusionMatrix_{name}.svg"), dpi=300,format="svg")
     plt.close()
 
 # 绘制训练集 ROC 曲线
@@ -274,7 +281,7 @@ plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
 plt.title("ROC Curves of Models (Train Set)")
 plt.legend()
-plt.savefig("F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Train_ROC_curves.svg", dpi=300,format="svg")
+plt.savefig(os.path.join(OUTPUT_DIR, "06_Train_ROC_curves.svg"), dpi=300,format="svg")
 plt.close()
 
 # 5. 模型性能对比
@@ -283,7 +290,7 @@ valid_results_df = pd.DataFrame(valid_results).T
 
 # 合并训练和验证结果
 all_results_df = train_results_df.join(valid_results_df)
-all_results_df.to_excel("F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Model_Performance.xlsx")
+all_results_df.to_excel(os.path.join(OUTPUT_DIR, "06_Model_Performance.xlsx"))
 
 # 绘制训练集性能对比图
 train_metrics = ['Train_Accuracy', 'Train_F1', 'Train_Precision', 'Train_Recall', 'Train_AUC', 'CV_Accuracy', 'CV_AUC']
@@ -302,7 +309,7 @@ for i in range(len(train_metrics), len(axes)):
     fig.delaxes(axes[i])
 
 plt.tight_layout()
-plt.savefig("F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Train_Performance_Comparison.svg", dpi=300,format="svg")
+plt.savefig(os.path.join(OUTPUT_DIR, "06_Train_Performance_Comparison.svg"), dpi=300,format="svg")
 plt.close()
 
 # 绘制验证集性能对比图
@@ -322,7 +329,7 @@ for i in range(len(valid_metrics), len(axes)):
     fig.delaxes(axes[i])
 
 plt.tight_layout()
-plt.savefig("F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Validation_Performance_Comparison.svg", dpi=300,format="svg")
+plt.savefig(os.path.join(OUTPUT_DIR, "06_Validation_Performance_Comparison.svg"), dpi=300,format="svg")
 plt.close()
 
 # 6. SHAP 值解释 (以最佳模型为例)
@@ -359,7 +366,7 @@ if hasattr(best_model, 'predict_proba'):
             shap.summary_plot(shap_values, explain_data, feature_names=feature_names, show=False)
             plt.title(f"SHAP Summary Plot - {best_model_name}")
             plt.tight_layout()
-            plt.savefig(f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_SHAP_Summary_{best_model_name}.svg", dpi=300,format="svg")
+            plt.savefig(os.path.join(OUTPUT_DIR, f"06_SHAP_Summary_{best_model_name}.svg"), dpi=300,format="svg")
             plt.close()
 
             # 特征重要性图
@@ -367,7 +374,7 @@ if hasattr(best_model, 'predict_proba'):
             shap.summary_plot(shap_values, explain_data, feature_names=feature_names, plot_type="bar", show=False)
             plt.title(f"SHAP Feature Importance - {best_model_name}")
             plt.tight_layout()
-            plt.savefig(f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_SHAP_Importance_{best_model_name}.svg", dpi=300,format="svg")
+            plt.savefig(os.path.join(OUTPUT_DIR, f"06_SHAP_Importance_{best_model_name}.svg"), dpi=300,format="svg")
             plt.close()
 
         # 为线性模型创建解释器
@@ -380,7 +387,7 @@ if hasattr(best_model, 'predict_proba'):
             shap.summary_plot(shap_values, explain_data, feature_names=feature_names, show=False)
             plt.title(f"SHAP Summary Plot - {best_model_name}")
             plt.tight_layout()
-            plt.savefig(f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_SHAP_Summary_{best_model_name}.svg", dpi=300,format="svg")
+            plt.savefig(os.path.join(OUTPUT_DIR, f"06_SHAP_Summary_{best_model_name}.svg"), dpi=300,format="svg")
             plt.close()
 
         # 为其他模型创建解释器（使用KernelExplainer）
@@ -399,7 +406,7 @@ if hasattr(best_model, 'predict_proba'):
             shap.summary_plot(shap_values_class1, explain_data, feature_names=feature_names, show=False)
             plt.title(f"SHAP Summary Plot - {best_model_name}")
             plt.tight_layout()
-            plt.savefig(f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_SHAP_Summary_{best_model_name}.svg", dpi=300,format="svg")
+            plt.savefig(os.path.join(OUTPUT_DIR, f"06_SHAP_Summary_{best_model_name}.svg"), dpi=300,format="svg")
             plt.close()
 
         print(f"✅ SHAP 分析完成并保存")
@@ -415,7 +422,7 @@ best_model_info = {
 }
 
 best_model_info_df = pd.DataFrame([best_model_info])
-best_model_info_df.to_excel("F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Best_Model_Info.xlsx", index=False)
+best_model_info_df.to_excel(os.path.join(OUTPUT_DIR, "06_Best_Model_Info.xlsx"), index=False)
 
 # 8. 绘制训练集与验证集性能对比
 comparison_metrics = ['Accuracy', 'F1', 'Precision', 'Recall', 'AUC']
@@ -445,7 +452,7 @@ for i in range(len(comparison_metrics), len(axes)):
     fig.delaxes(axes[i])
 
 plt.tight_layout()
-plt.savefig("F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Train_vs_Validation_Comparison.svg", dpi=300,format="svg")
+plt.savefig(os.path.join(OUTPUT_DIR, "06_Train_vs_Validation_Comparison.svg"), dpi=300,format="svg")
 plt.close()
 
 # 绘制验证集 ROC 曲线
@@ -470,7 +477,7 @@ plt.title("ROC Curves of Models (Validation Set)")
 plt.legend(loc="lower right")
 
 # 保存验证集 ROC 曲线图
-plt.savefig("F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Valid_ROC_curves.svg", dpi=300,format="svg")
+plt.savefig(os.path.join(OUTPUT_DIR, "06_Valid_ROC_curves.svg"), dpi=300,format="svg")
 plt.close()
 print("✅ 验证集 ROC 曲线图已保存。")
 
@@ -555,7 +562,7 @@ ax.spines['right'].set_visible(False)
 plt.legend(loc="lower right", frameon=False, fontsize=10)
 
 # 保存图片
-output_path = f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Valid_Calibration_Smooth_{best_model_name}.svg"
+output_path = os.path.join(OUTPUT_DIR, f"06_Valid_Calibration_Smooth_{best_model_name}.svg")
 plt.savefig(output_path, dpi=300, format="svg", bbox_inches='tight')
 plt.close()
 print(f"✅ 校准曲线已保存至: {output_path}")
@@ -633,7 +640,7 @@ if hasattr(best_model, "predict_proba"):
     plt.grid(True, linestyle='--', alpha=0.3)
 
     # 保存 DCA 图
-    dca_output_path = f"F:/2023/Pyradiomics结果/第五次尝试/06_model/06_Valid_DCA_{best_model_name}.svg"
+    dca_output_path = os.path.join(OUTPUT_DIR, f"06_Valid_DCA_{best_model_name}.svg")
     plt.savefig(dca_output_path, dpi=300, format="svg", bbox_inches='tight')
     plt.close()
     print(f"✅ 决策曲线 (DCA) 已保存至: {dca_output_path}")

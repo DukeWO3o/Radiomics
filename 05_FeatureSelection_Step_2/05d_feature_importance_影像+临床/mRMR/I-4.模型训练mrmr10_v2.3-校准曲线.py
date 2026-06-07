@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 
 import pandas as pd
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
@@ -32,10 +33,16 @@ from sklearn.calibration import calibration_curve
 plt.rcParams['font.sans-serif'] = ['Arial', 'SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
+# === 路径配置（基于脚本自身位置） ===
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "06_Modelling", "06_model")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 # 1. 读取已标准化的训练集和验证集
 print("正在加载数据...")
-train_data = pd.read_excel("F:/2023/Pyradiomics结果/第四次尝试/05_feature_importance_v2/mRMR/train_mrmr_selected.xlsx")
-valid_data = pd.read_excel("F:/2023/Pyradiomics结果/第四次尝试/05_feature_importance_v2/mRMR/val_mrmr_selected.xlsx")
+train_data = pd.read_excel(os.path.join(SCRIPT_DIR, "train_mrmr_selected.xlsx"))
+valid_data = pd.read_excel(os.path.join(SCRIPT_DIR, "val_mrmr_selected.xlsx"))
 
 X_train = train_data.drop(columns=['label'])
 y_train = train_data['label']
@@ -191,7 +198,7 @@ for name, config in models.items():
     best_models[name] = best_model
 
     # 保存模型
-    joblib.dump(best_model, f"F:/2023/Pyradiomics结果/第四次尝试/06_model/06_{name}_best_model.pkl")
+    joblib.dump(best_model, os.path.join(OUTPUT_DIR, f"06_{name}_best_model.pkl"))
 
     # 训练集评估
     y_train_pred = best_model.predict(X_train)
@@ -256,7 +263,7 @@ for name, config in models.items():
     disp = ConfusionMatrixDisplay(confusion_matrix=cm_train)
     disp.plot(cmap="Blues")
     plt.title(f"Train Confusion Matrix - {name}")
-    plt.savefig(f"F:/2023/Pyradiomics结果/第四次尝试/06_model/06_Train_ConfusionMatrix_{name}.svg", dpi=300,format="svg")
+    plt.savefig(os.path.join(OUTPUT_DIR, f"06_Train_ConfusionMatrix_{name}.svg"), dpi=300,format="svg")
     plt.close()
 
     # 验证集混淆矩阵
@@ -264,7 +271,7 @@ for name, config in models.items():
     disp = ConfusionMatrixDisplay(confusion_matrix=cm_valid)
     disp.plot(cmap="Blues")
     plt.title(f"Valid Confusion Matrix - {name}")
-    plt.savefig(f"F:/2023/Pyradiomics结果/第四次尝试/06_model/06_Valid_ConfusionMatrix_{name}.svg", dpi=300,format="svg")
+    plt.savefig(os.path.join(OUTPUT_DIR, f"06_Valid_ConfusionMatrix_{name}.svg"), dpi=300,format="svg")
     plt.close()
 
 # 绘制训练集 ROC 曲线
@@ -273,7 +280,7 @@ plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
 plt.title("ROC Curves of Models (Train Set)")
 plt.legend()
-plt.savefig("F:/2023/Pyradiomics结果/第四次尝试/06_model/06_Train_ROC_curves.svg", dpi=300,format="svg")
+plt.savefig(os.path.join(OUTPUT_DIR, "06_Train_ROC_curves.svg"), dpi=300,format="svg")
 plt.close()
 
 # ================== 步骤 5：模型性能对比与 DeLong 检验 ==================
@@ -443,7 +450,7 @@ for col in metrics_order:
 df_display['P-value (vs Best)'] = df_display['P-value (vs Best)'].apply(format_p)
 
 # 保存
-output_file = "F:/2023/Pyradiomics结果/第四次尝试/06_model/06_Model_Performance_NewStyle.xlsx"
+output_file = os.path.join(OUTPUT_DIR, "06_Model_Performance_NewStyle.xlsx")
 df_display.to_excel(output_file, index=False)
 print(f"✅ 新样式表格已保存至: {output_file}")
 
@@ -475,7 +482,7 @@ plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
 plt.title(f"ROC Curves comparison (Reference: {best_model_name})")
 plt.legend(loc="lower right", fontsize=9)
-plt.savefig("F:/2023/Pyradiomics结果/第四次尝试/06_model/06_Valid_ROC_with_Pvalues.svg", dpi=300, format="svg")
+plt.savefig(os.path.join(OUTPUT_DIR, "06_Valid_ROC_with_Pvalues.svg"), dpi=300, format="svg")
 plt.close()
 print("✅ 带 P-value 的 ROC 曲线已保存。")
 
@@ -569,7 +576,7 @@ for name, model in best_models.items():
                   loc=(0.65, 0.15), frameon=False, fontsize=11, handlelength=3)
 
         # 保存图表
-        output_path = f"F:/2023/Pyradiomics结果/第四次尝试/06_model/06_Valid_Calibration_RMS_{name}.svg"
+        output_path = os.path.join(OUTPUT_DIR, f"06_Valid_Calibration_RMS_{name}.svg")
         plt.savefig(output_path, dpi=300, format="svg", bbox_inches='tight', pad_inches=0.1)
         plt.close(fig)  # 显式关闭 figure
         print(f"  ✅ 已保存: 06_Valid_Calibration_CI_{name}.svg")
@@ -672,7 +679,7 @@ if hasattr(best_model, "predict_proba"):
     ax.legend(loc="upper right", frameon=False, fontsize=11)
 
     # 5. 保存 DCA 图
-    dca_output_path = f"F:/2023/Pyradiomics结果/第四次尝试/06_model/06_Valid_DCA_Raw_{best_model_name}.svg"
+    dca_output_path = os.path.join(OUTPUT_DIR, f"06_Valid_DCA_Raw_{best_model_name}.svg")
     plt.savefig(dca_output_path, dpi=300, format="svg", bbox_inches='tight', pad_inches=0.1)
     plt.close(fig)
     print(f"✅ 最佳模型原始概率 DCA 决策曲线已保存至: {dca_output_path}")
