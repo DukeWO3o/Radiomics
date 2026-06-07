@@ -1,0 +1,20 @@
+setting:
+  binWidth: 25
+  resampledPixelSpacing: [0.5, 0.5]
+  interpolator: 'sitkBSpline'
+  normalize: false
+  removeOutliers: 3
+  label: 1
+  force2D: true
+
+imageType:
+  Original: {}
+
+featureClass:
+  firstorder:
+  shape2D:
+  glcm:
+  glrlm:
+  glszm:
+  gldm:
+  ngtdm:
