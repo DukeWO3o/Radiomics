@@ -32,3 +32,14 @@ Thumbs.db
 *.DCM
 *.nii.gz
 *.nii
+
+# Generated image directories (large, do not track)
+02_OriginalData/02_ICC_sample/ROI_review_50cases/
+06_Modelling/output/
+
+# Archives
+*.7z
+*.zip
+
+# Annotated manuscript drafts
+Manuscript3_annotated.docx
