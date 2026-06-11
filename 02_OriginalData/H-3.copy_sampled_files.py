@@ -28,9 +28,9 @@ import os, sys, shutil
 import pandas as pd
 
 # ======================== CONFIGURATION ========================
-MAPPING_FILE   = r'E:\Softwares\PycharmProject\Radiomics\04_FeatureSelection_Step_1\ICC_sample\sampled_50_cases_file_mapping.xlsx'
+MAPPING_FILE   = r'E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\sampled_50_cases_file_mapping.xlsx'
 SOURCE_ROOT    = r'F:\2023original'
-OUTPUT_DIR     = r'E:\Softwares\PycharmProject\Radiomics\04_FeatureSelection_Step_1\ICC_sample\ROI_review_50cases'
+OUTPUT_DIR     = r'E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\ROI_review_50cases'
 
 SUBFOLDERS = ['00_DCM', '01_PNG', '02_Mask', '03_Binarized']
 LABEL_MAP  = {0: 'DCM', 1: 'DCM-RMPP'}

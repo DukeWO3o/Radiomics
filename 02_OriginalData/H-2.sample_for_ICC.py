@@ -22,7 +22,7 @@ import numpy as np
 # ======================== CONFIGURATION ========================
 RADIOMICS_FILE = r'E:\Softwares\PycharmProject\Radiomics\03_MergedData\01_临床汇总完整版-v3-369-618-987.xlsx'
 SOURCE_ROOT    = r'F:\2023original'
-OUTPUT_DIR     = r'E:\Softwares\PycharmProject\Radiomics\04_FeatureSelection_Step_1\ICC_sample'
+OUTPUT_DIR     = r'E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample'
 
 N_SAMPLE    = 50
 RANDOM_SEED = 42

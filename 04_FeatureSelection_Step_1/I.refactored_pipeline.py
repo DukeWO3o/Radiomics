@@ -46,7 +46,8 @@ from statsmodels.sandbox.stats.multicomp import multipletests
 
 # ========================= ·������ =========================
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) if '__file__' in dir() else r'E:\Softwares\PycharmProject\Radiomics\04_FeatureSelection_Step_1'
-OUTPUT_DIR = os.path.join(SCRIPT_DIR, 'output')
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, '06_Modelling', 'output')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\01b_影像版-v4-374-557-931.xlsx"
