@@ -29,9 +29,8 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearc
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from imblearn.pipeline import Pipeline as ImbPipeline
-from imblearn.over_sampling import SMOTE
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin, clone
+from sklearn.neighbors import NearestNeighbors
 from sklearn.linear_model import LogisticRegression, LassoCV
 
 from sklearn.ensemble import RandomForestClassifier
@@ -164,6 +163,34 @@ plt.close()
 print("    Saved.")
 
 # =========================  STEP 5: LASSO Selector  =========================
+
+
+# =========================  SMOTE (no imblearn dependency) =========================
+class SimpleSMOTE(BaseEstimator, TransformerMixin):
+    def __init__(self, k_neighbors=5, random_state=42):
+        self.k_neighbors = k_neighbors
+        self.random_state = random_state
+    def fit(self, X, y=None):
+        return self
+    def transform(self, X, y=None):
+        import numpy as np
+        X = np.asarray(X); y_arr = np.asarray(y) if y is not None else None
+        if y_arr is None or len(np.unique(y_arr)) < 2:
+            return X
+        classes, counts = np.unique(y_arr, return_counts=True)
+        maj = classes[np.argmax(counts)]; min_c = classes[np.argmin(counts)]
+        n_syn = counts.max() - counts.min()
+        if n_syn <= 0: return X
+        X_min = X[y_arr == min_c]
+        nn = NearestNeighbors(n_neighbors=min(self.k_neighbors + 1, len(X_min)))
+        nn.fit(X_min)
+        rng = np.random.RandomState(self.random_state)
+        syn = []; idxs = rng.choice(len(X_min), n_syn, replace=True)
+        for i in idxs:
+            nbrs = nn.kneighbors([X_min[i]], return_distance=False)[0]
+            ni = rng.choice(nbrs[1:])
+            syn.append(X_min[i] + rng.random() * (X_min[ni] - X_min[i]))
+        return np.vstack([X, np.array(syn)])
 class LassoFeatureSelector(BaseEstimator, TransformerMixin):
     """
     Within-CV-fold feature selection using LassoCV.
@@ -273,9 +300,9 @@ plt.figure(figsize=(10, 8))
 for name, cfg in models_config.items():
     print(f"\n--- {name} ---")
     if USE_SMOTE:
-        pipe = ImbPipeline([
+        pipe = Pipeline([
             ("selector", LassoFeatureSelector(radio_mask, cv_folds=LASSO_CV_FOLDS)),
-            ("smote", SMOTE(random_state=RANDOM_STATE, k_neighbors=SMOTE_K_NEIGHBORS)),
+            ("smote", SimpleSMOTE(k_neighbors=SMOTE_K_NEIGHBORS, random_state=RANDOM_STATE)),
             ("classifier", cfg["model"]),
         ])
     else:

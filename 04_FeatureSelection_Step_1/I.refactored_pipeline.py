@@ -20,9 +20,8 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearc
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
-from imblearn.pipeline import Pipeline as ImbPipeline
-from imblearn.over_sampling import SMOTE
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin, clone
+from sklearn.neighbors import NearestNeighbors
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -139,6 +138,65 @@ print('  Saved correlation plots.')
 print('\nReady for CV-internal feature selection + modeling.')
 print(f'  Candidate features (input to CV): {len(feature_names_all)}')
 # ========================= ����5: CV�ڲ�����ѡ���� =========================
+
+
+# =========================  SMOTE (no imblearn dependency) =========================
+class SimpleSMOTE(BaseEstimator, TransformerMixin):
+    '''
+    Minimal SMOTE implementation compatible with sklearn Pipeline.
+    Only oversamples within the current CV training fold.
+    '''
+    def __init__(self, k_neighbors=5, random_state=42):
+        self.k_neighbors = k_neighbors
+        self.random_state = random_state
+
+    def fit(self, X, y=None):
+        return self  # no fitting needed
+
+    def transform(self, X, y=None):
+        import numpy as np
+        X = np.asarray(X)
+        y_arr = np.asarray(y) if y is not None else None
+        if y_arr is None:
+            return X
+
+        classes, counts = np.unique(y_arr, return_counts=True)
+        if len(classes) < 2:
+            return X
+
+        majority_class = classes[np.argmax(counts)]
+        minority_class = classes[np.argmin(counts)]
+        n_majority = counts.max()
+        n_minority = counts.min()
+        n_synthetic = n_majority - n_minority
+
+        if n_synthetic <= 0:
+            return X
+
+        X_min = X[y_arr == minority_class]
+        nn = NearestNeighbors(n_neighbors=min(self.k_neighbors + 1, n_minority))
+        nn.fit(X_min)
+
+        rng = np.random.RandomState(self.random_state)
+        synthetic = []
+        indices = rng.choice(n_minority, n_synthetic, replace=True)
+        for i in indices:
+            neighbors = nn.kneighbors([X_min[i]], return_distance=False)[0]
+            nn_idx = rng.choice(neighbors[1:])  # exclude self (index 0)
+            diff = X_min[nn_idx] - X_min[i]
+            gap = rng.random()
+            synthetic.append(X_min[i] + gap * diff)
+
+        X_synthetic = np.array(synthetic)
+        y_synthetic = np.full(n_synthetic, minority_class)
+        X_resampled = np.vstack([X, X_synthetic])
+        y_resampled = np.hstack([y_arr, y_synthetic])
+        self.y_resampled_ = y_resampled
+        return X_resampled
+
+    def fit_resample(self, X, y):
+        self.fit(X, y)
+        return self.transform(X, y), self.y_resampled_
 class CVFeatureSelector(BaseEstimator, TransformerMixin):
     '''
     Within-CV-fold feature selection:
@@ -266,9 +324,9 @@ for name, config in models_config.items():
 
     # ����Pipeline: ����ѡ�� -> ������
     if USE_SMOTE:
-        pipeline = ImbPipeline([
+        pipeline = Pipeline([
             ('selector', CVFeatureSelector(k=MRMR_K)),
-            ('smote', SMOTE(random_state=RANDOM_STATE, k_neighbors=SMOTE_K_NEIGHBORS)),
+            ('smote', SimpleSMOTE(k_neighbors=SMOTE_K_NEIGHBORS, random_state=RANDOM_STATE)),
             ('classifier', config['model'])
         ])
     else:
