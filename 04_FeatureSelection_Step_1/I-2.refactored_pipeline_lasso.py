@@ -56,7 +56,7 @@ OUTPUT_DIR = os.path.join(PROJECT_ROOT, "06_Modelling", "output_lasso")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ---- Change this to your data file ----
-INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\01d_影像+临床版-v4-374-557-931.xlsx"
+INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\01c_影像+年龄版-v4-374-557-931.xlsx"
 
 N_FOLDS = 5
 RANDOM_STATE = 42
@@ -167,7 +167,7 @@ class LassoFeatureSelector(BaseEstimator, TransformerMixin):
     Clinical columns (if any) pass through unchanged.
     """
     def __init__(self, radio_mask, cv_folds=LASSO_CV_FOLDS, threshold=LASSO_COEF_THRESHOLD):
-        self.radio_mask = np.array(radio_mask)
+        self.radio_mask = radio_mask           # store as-is for sklearn clone()
         self.cv_folds = cv_folds
         self.threshold = threshold
         self.selected_indices_ = None
@@ -176,8 +176,9 @@ class LassoFeatureSelector(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y):
         X_df = pd.DataFrame(X)
-        radio_idx = np.where(self.radio_mask)[0]
-        clinical_idx = np.where(~self.radio_mask)[0]
+        radio_mask_arr = np.array(self.radio_mask)  # convert here, not in __init__
+        radio_idx = np.where(radio_mask_arr)[0]
+        clinical_idx = np.where(~radio_mask_arr)[0]
 
         if len(radio_idx) == 0:
             self.selected_indices_ = np.arange(X.shape[1])
