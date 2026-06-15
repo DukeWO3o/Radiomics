@@ -51,7 +51,7 @@ PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, '06_Modelling', 'output')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\01c_影像+年龄版-v4-374-557-931.xlsx"
+INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\02c_ICC_filtered_影像+年龄版-v4-374-557-931.xlsx"
 N_FOLDS = 5
 RANDOM_STATE = 42
 MRMR_K = 9
@@ -60,6 +60,7 @@ MV_MISSING = 0.30
 MV_VARIANCE = 0.05
 USE_SMOTE = True             # Set False to disable SMOTE
 SMOTE_K_NEIGHBORS = 5        # k_neighbors for SMOTE
+PROTECTED_FEATURES = ['age']  # columns always kept (never filtered by mRMR); use [] for none
 
 print('='*60)
 print(' Radiomics RMPP Prediction - NO Data Leakage Pipeline')
@@ -118,6 +119,14 @@ scaler = StandardScaler()
 X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train_clean), columns=feature_names_all)
 X_valid_scaled = pd.DataFrame(scaler.transform(X_valid_clean), columns=feature_names_all)
 print('  Standardization done.')
+# Identify protected feature indices (e.g. age — always included)
+protected_indices = []
+for pf in PROTECTED_FEATURES:
+    if pf in feature_names_all:
+        protected_indices.append(feature_names_all.index(pf))
+        print(f'  Protected feature: {pf} (index {protected_indices[-1]})')
+if not protected_indices:
+    print('  No protected features configured.')
 
 # ========================= ����4: ��������Կ��ӻ� =========================
 print('\n[4] Correlation visualization...')
@@ -200,23 +209,30 @@ class SimpleSMOTE(BaseEstimator, TransformerMixin):
 class CVFeatureSelector(BaseEstimator, TransformerMixin):
     '''
     Within-CV-fold feature selection:
-    1. Mann-Whitney U test per feature
-    2. FDR (Benjamini-Hochberg) correction
-    3. mRMR for final K features
+    1. Mann-Whitney U test per feature (skips protected features)
+    2. FDR correction
+    3. mRMR for final K features (protected features always kept)
     '''
-    def __init__(self, k=MRMR_K, p_threshold=P_THRESHOLD):
+    def __init__(self, k=MRMR_K, p_threshold=P_THRESHOLD, protected_indices=None):
         self.k = k
         self.p_threshold = p_threshold
+        self.protected_indices = protected_indices if protected_indices else []
         self.selected_features_ = None
         self.p_values_ = None
 
     def fit(self, X, y):
-        X_df = pd.DataFrame(X, columns=[f'f{i}' for i in range(X.shape[1])])
+        all_cols = [f'f{i}' for i in range(X.shape[1])]
+        X_df = pd.DataFrame(X, columns=all_cols)
         y_series = pd.Series(y)
 
-        # Step A: Mann-Whitney U
+        # Split: protected vs candidate columns
+        protected_cols = [all_cols[i] for i in self.protected_indices if i < len(all_cols)]
+        candidate_mask = [i for i in range(X.shape[1]) if i not in self.protected_indices]
+        candidate_cols = [all_cols[i] for i in candidate_mask]
+
+        # Step A: Mann-Whitney U (candidates only)
         results = []
-        for col in X_df.columns:
+        for col in candidate_cols:
             g0 = X_df.loc[y_series == 0, col]
             g1 = X_df.loc[y_series == 1, col]
             if len(g0) > 1 and len(g1) > 1:
@@ -235,16 +251,18 @@ class CVFeatureSelector(BaseEstimator, TransformerMixin):
             print('  [CV fold] WARNING: No significant features after FDR, using top 5 by raw p')
             sig_feats = res_df.nsmallest(5, 'p_raw')['feature'].tolist()
 
-        # Step C: mRMR
+        # Step C: mRMR (candidates only, protected always included)
         n_select = min(self.k, len(sig_feats))
         X_sig = X_df[sig_feats].copy()
         X_sig['label'] = y_series.values
         try:
             mrmr_result = pymrmr.mRMR(X_sig, 'MIQ', n_select)
-            self.selected_features_ = [f for f in mrmr_result if f != 'label']
+            mrmr_selected = [f for f in mrmr_result if f != 'label']
         except Exception:
-            self.selected_features_ = sig_feats[:n_select]
+            mrmr_selected = sig_feats[:n_select]
 
+        # Final: protected first, then mRMR-selected
+        self.selected_features_ = protected_cols + mrmr_selected
         self.p_values_ = res_df.set_index('feature')['p_adj'].to_dict()
         return self
 
@@ -325,13 +343,13 @@ for name, config in models_config.items():
     # ����Pipeline: ����ѡ�� -> ������
     if USE_SMOTE:
         pipeline = Pipeline([
-            ('selector', CVFeatureSelector(k=MRMR_K)),
+            ('selector', CVFeatureSelector(k=MRMR_K, protected_indices=protected_indices)),
             ('smote', SimpleSMOTE(k_neighbors=SMOTE_K_NEIGHBORS, random_state=RANDOM_STATE)),
             ('classifier', config['model'])
         ])
     else:
         pipeline = Pipeline([
-            ('selector', CVFeatureSelector(k=MRMR_K)),
+            ('selector', CVFeatureSelector(k=MRMR_K, protected_indices=protected_indices)),
             ('classifier', config['model'])
         ])
 
