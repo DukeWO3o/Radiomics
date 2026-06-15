@@ -501,13 +501,15 @@ if best_name in ['RandomForest', 'XGBoost', 'LightGBM', 'DecisionTree']:
     explainer = shap.TreeExplainer(best_model.named_steps['classifier'])
     # Get transformed features for SHAP
     X_transformed = best_model.named_steps['selector'].transform(X_explain)
-    sel_features = best_model.named_steps['selector'].selected_features_
+    sel_indices = [int(f.replace('f', '')) for f in best_model.named_steps['selector'].selected_features_]
+    sel_features = [feature_names_all[i] for i in sel_indices if i < len(feature_names_all)]
     shap_vals = explainer.shap_values(X_transformed)
     if isinstance(shap_vals, list):
         shap_vals = shap_vals[1] if len(shap_vals) == 2 else shap_vals[0]
 elif best_name == 'LogisticRegression':
     X_transformed = best_model.named_steps['selector'].transform(X_explain)
-    sel_features = best_model.named_steps['selector'].selected_features_
+    sel_indices = [int(f.replace('f', '')) for f in best_model.named_steps['selector'].selected_features_]
+    sel_features = [feature_names_all[i] for i in sel_indices if i < len(feature_names_all)]
     explainer = shap.LinearExplainer(best_model.named_steps['classifier'], X_transformed)
     shap_vals = explainer.shap_values(X_transformed)
     if isinstance(shap_vals, list):
@@ -629,17 +631,19 @@ def compute_midrank(x):
     return T2
 
 def fastDeLong(predictions_sorted_transposed, label_1_count):
+    # predictions_sorted_transposed: sorted by label (0s first, then 1s)
     m = label_1_count; n = predictions_sorted_transposed.shape[1] - m
-    pos = predictions_sorted_transposed[:, :m]; neg = predictions_sorted_transposed[:, m:]
+    neg = predictions_sorted_transposed[:, :n]   # first n cols = label 0
+    pos = predictions_sorted_transposed[:, n:]   # last  m cols = label 1
     k = predictions_sorted_transposed.shape[0]
-    tx = np.empty([k, m]); ty = np.empty([k, n]); tz = np.empty([k, m + n])
+    tx = np.empty([k, n]); ty = np.empty([k, m]); tz = np.empty([k, m + n])
     for r in range(k):
         tx[r, :] = compute_midrank(neg[r, :])
         ty[r, :] = compute_midrank(pos[r, :])
         tz[r, :] = compute_midrank(predictions_sorted_transposed[r, :])
-    aucs = np.sum(tz[:, :m], axis=1) / (m * n) - (m + 1.0) / (2.0 * n)
-    v01 = (tz[:, :m] - tx[:, :]) / n
-    v10 = 1.0 - (tz[:, m:] - ty[:, :]) / m
+    aucs = np.sum(tz[:, n:], axis=1) / (m * n) - (m + 1.0) / (2.0 * n)
+    v01 = (tz[:, n:] - ty[:, :]) / n
+    v10 = 1.0 - (tz[:, :n] - tx[:, :]) / m
     sx = np.cov(v01); sy = np.cov(v10)
     delongcov = sx / m + sy / n
     return aucs, delongcov

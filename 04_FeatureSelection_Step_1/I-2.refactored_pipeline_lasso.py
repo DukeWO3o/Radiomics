@@ -532,12 +532,15 @@ def _midrank(x):
     T2 = np.empty(N); T2[J] = T; return T2
 
 def _fastDeLong(pred, n1):
-    m, n = n1, pred.shape[1]-n1; pos, neg = pred[:,:m], pred[:,m:]; k = pred.shape[0]
+    # pred sorted by label: 0s first (n cols), then 1s (m cols)
+    m, n = n1, pred.shape[1]-n1
+    neg, pos = pred[:,:n], pred[:,n:]   # FIXED: neg first, pos last
+    k = pred.shape[0]
     tx = np.array([_midrank(neg[r]) for r in range(k)])
     ty = np.array([_midrank(pos[r]) for r in range(k)])
     tz = np.array([_midrank(pred[r]) for r in range(k)])
-    auc = tz[:,:m].sum(1)/(m*n) - (m+1)/(2*n)
-    v01 = (tz[:,:m]-tx)/n; v10 = 1-(tz[:,m:]-ty)/m
+    auc = tz[:,n:].sum(1)/(m*n) - (m+1)/(2*n)
+    v01 = (tz[:,n:]-ty)/n; v10 = 1-(tz[:,:n]-tx)/m
     return auc, np.cov(v01)/m + np.cov(v10)/n
 
 def delong_p(y, p1, p2):
