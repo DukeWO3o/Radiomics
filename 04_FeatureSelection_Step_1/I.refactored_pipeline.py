@@ -82,7 +82,7 @@ print(f'  Train labels: {dict(train_df["label"].value_counts())}')
 
 # ========================= ����3: Ԥɸѡ (��ʹ�ñ�ǩ����й¶) =========================
 print('\n[3] Preprocessing (label-free, no leakage)...')
-id_cols = [c for c in train_df.columns if c.lower() in ['patientid', 'image', 'mask', 'age']]
+id_cols = [c for c in train_df.columns if c.lower() in ['patientid', 'image', 'mask']]  # age is clinical, not metadata
 y_train = train_df['label'].values
 y_valid = valid_df['label'].values
 
