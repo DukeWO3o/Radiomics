@@ -375,6 +375,41 @@ all_df.to_excel(os.path.join(OUTPUT_DIR, "04_Model_Performance.xlsx"))
 best_name = va_df["Valid_AUC"].idxmax()
 best_model = best_models[best_name]
 print(f"  Best: {best_name}  Valid AUC={va_df.loc[best_name,'Valid_AUC']:.3f}")
+# ===== Export selected features for all models =====
+print("  Exporting feature selection results ...")
+all_feat_names = list(X_full_train.columns)
+feature_records = []
+for name, m in best_models.items():
+    sel = m.named_steps["selector"]
+    if hasattr(sel, "selected_features_"):
+        indices = sel.selected_features_
+        real_names = [all_feat_names[i] for i in indices if i < len(all_feat_names)]
+        # Get LASSO coefficients if available
+        coefs = ""
+        if hasattr(sel, "lasso_") and sel.lasso_ is not None:
+            coef_arr = sel.lasso_.coef_
+            # Map coefficients to kept features
+            kept_indices = [i for i in indices if i < len(radio_kept)]
+            if len(kept_indices) > 0:
+                coefs = ", ".join([f"{all_feat_names[i]}={coef_arr[np.where(np.array(radio_kept)==all_feat_names[i])[0][0] if all_feat_names[i] in radio_kept else -1]:.4f}" if all_feat_names[i] in radio_kept else f"{all_feat_names[i]}" for i in kept_indices])
+        feature_records.append({
+            "Model": name,
+            "N_Features": len(real_names),
+            "Selected_Features": ", ".join(real_names),
+            "LASSO_Alpha": sel.lasso_.alpha_ if hasattr(sel, "lasso_") and sel.lasso_ else "N/A",
+        })
+feat_df = pd.DataFrame(feature_records)
+feat_df.to_excel(os.path.join(OUTPUT_DIR, "04b_Selected_Features.xlsx"), index=False)
+
+# Best model detail
+best_sel = best_model.named_steps["selector"]
+if hasattr(best_sel, "selected_features_"):
+    best_indices = best_sel.selected_features_
+    best_names = [all_feat_names[i] for i in best_indices if i < len(all_feat_names)]
+    print(f"  Best model ({best_name}) uses {len(best_names)} features:")
+    for fn in best_names:
+        print(f"    - {fn}")
+
 
 plt.figure(figsize=(10, 8))
 for name, m in best_models.items():

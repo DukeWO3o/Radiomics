@@ -422,6 +422,29 @@ print('  Performance table saved.')
 best_name = valid_df_res['Valid_AUC'].idxmax()
 best_model = best_models[best_name]
 print(f'  Best model: {best_name} (Valid AUC={valid_df_res.loc[best_name, "Valid_AUC"]:.3f})')
+# ===== Export selected features for all models =====
+print('  Exporting feature selection results ...')
+feature_records = []
+for name, model in best_models.items():
+    sel = model.named_steps['selector']
+    indices = [int(f.replace('f', '')) for f in sel.selected_features_]
+    real_names = [feature_names_all[i] for i in indices if i < len(feature_names_all)]
+    feature_records.append({
+        'Model': name,
+        'N_Features': len(real_names),
+        'Selected_Features': ', '.join(real_names)
+    })
+feat_df = pd.DataFrame(feature_records)
+feat_df.to_excel(os.path.join(OUTPUT_DIR, '04b_Selected_Features.xlsx'), index=False)
+
+# Best model detailed feature list
+best_sel = best_model.named_steps['selector']
+best_indices = [int(f.replace('f', '')) for f in best_sel.selected_features_]
+best_feat_names = [feature_names_all[i] for i in best_indices if i < len(feature_names_all)]
+print(f'  Best model ({best_name}) uses {len(best_feat_names)} features:')
+for fn in best_feat_names:
+    print(f'    - {fn}')
+
 
 # ��֤��ROCͼ
 plt.figure(figsize=(10, 8))
