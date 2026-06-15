@@ -29,6 +29,8 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearc
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline as ImbPipeline
+from imblearn.over_sampling import SMOTE
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.linear_model import LogisticRegression, LassoCV
 
@@ -63,7 +65,9 @@ RANDOM_STATE = 42
 MV_MISSING = 0.30
 MV_VARIANCE = 0.05
 LASSO_CV_FOLDS = 5         # internal CV folds for LassoCV alpha selection
-LASSO_COEF_THRESHOLD = 1e-5 # minimum |coef| to keep a feature
+LASSO_COEF_THRESHOLD = 1e-5
+USE_SMOTE = True             # Set False to disable SMOTE
+SMOTE_K_NEIGHBORS = 5        # k_neighbors for SMOTE # minimum |coef| to keep a feature
 
 # =========================  STEP 1: Load  =========================
 print("=" * 60)
@@ -268,10 +272,17 @@ all_pred_probs = {}
 plt.figure(figsize=(10, 8))
 for name, cfg in models_config.items():
     print(f"\n--- {name} ---")
-    pipe = Pipeline([
-        ("selector", LassoFeatureSelector(radio_mask, cv_folds=LASSO_CV_FOLDS)),
-        ("classifier", cfg["model"]),
-    ])
+    if USE_SMOTE:
+        pipe = ImbPipeline([
+            ("selector", LassoFeatureSelector(radio_mask, cv_folds=LASSO_CV_FOLDS)),
+            ("smote", SMOTE(random_state=RANDOM_STATE, k_neighbors=SMOTE_K_NEIGHBORS)),
+            ("classifier", cfg["model"]),
+        ])
+    else:
+        pipe = Pipeline([
+            ("selector", LassoFeatureSelector(radio_mask, cv_folds=LASSO_CV_FOLDS)),
+            ("classifier", cfg["model"]),
+        ])
     grid = GridSearchCV(pipe, cfg["params"], cv=cv, scoring="roc_auc", n_jobs=-1, verbose=0)
     grid.fit(X_full_train.values, y_train)
     best_model = grid.best_estimator_
@@ -383,6 +394,7 @@ try:
         def fn(x): return best_model.named_steps["classifier"].predict_proba(x)
         explainer = shap.KernelExplainer(fn, X_trans[:10])
         sv = explainer.shap_values(X_trans[:30])
+        X_trans = X_trans[:30]  # align rows with shap_vals
         if isinstance(sv, list) and len(sv) == 2: sv = sv[1]
 
     feat_names = [f"f{i}" for i in range(X_trans.shape[1])]
@@ -491,4 +503,6 @@ for k in ["Valid_AUC","Valid_Accuracy","Valid_BalancedAcc","Valid_MCC","Valid_Br
     if k in va_df.columns: print(f"  {k:20s}: {va_df.loc[best_name,k]:.4f}")
 print(f"\n  Output -> {OUTPUT_DIR}")
 print("  Feature selection: LassoCV (no data leakage)")
+if USE_SMOTE:
+    print("  SMOTE oversampling applied within each CV fold")
 if clinical_cols: print(f"  Clinical features always included: {clinical_cols}")

@@ -20,6 +20,8 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearc
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline as ImbPipeline
+from imblearn.over_sampling import SMOTE
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from sklearn.linear_model import LogisticRegression
@@ -50,13 +52,15 @@ PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, '06_Modelling', 'output')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\01b_影像版-v4-374-557-931.xlsx"
+INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\01c_影像+年龄版-v4-374-557-931.xlsx"
 N_FOLDS = 5
 RANDOM_STATE = 42
 MRMR_K = 9
 P_THRESHOLD = 0.05
 MV_MISSING = 0.30
 MV_VARIANCE = 0.05
+USE_SMOTE = True             # Set False to disable SMOTE
+SMOTE_K_NEIGHBORS = 5        # k_neighbors for SMOTE
 
 print('='*60)
 print(' Radiomics RMPP Prediction - NO Data Leakage Pipeline')
@@ -261,10 +265,17 @@ for name, config in models_config.items():
     print(f'\n--- {name} ---')
 
     # ����Pipeline: ����ѡ�� -> ������
-    pipeline = Pipeline([
-        ('selector', CVFeatureSelector(k=MRMR_K)),
-        ('classifier', config['model'])
-    ])
+    if USE_SMOTE:
+        pipeline = ImbPipeline([
+            ('selector', CVFeatureSelector(k=MRMR_K)),
+            ('smote', SMOTE(random_state=RANDOM_STATE, k_neighbors=SMOTE_K_NEIGHBORS)),
+            ('classifier', config['model'])
+        ])
+    else:
+        pipeline = Pipeline([
+            ('selector', CVFeatureSelector(k=MRMR_K)),
+            ('classifier', config['model'])
+        ])
 
     # GridSearchCV
     grid = GridSearchCV(pipeline, config['params'], cv=cv, scoring='roc_auc',
@@ -430,6 +441,7 @@ else:
     shap_vals = explainer.shap_values(X_transformed[:30])
     if isinstance(shap_vals, list):
         shap_vals = shap_vals[1] if len(shap_vals) == 2 else shap_vals[0]
+    X_transformed = X_transformed[:30]  # align rows with shap_vals
 
 # SHAP Summary Plot
 plt.figure(figsize=(10, 8))
@@ -603,4 +615,6 @@ print(f'\nAll results saved to: {OUTPUT_DIR}')
 print('\nKey design difference from original:')
 print('  - Mann-Whitney U + FDR + mRMR performed WITHIN each CV fold')
 print('  - No data leakage: feature selection uses only training-fold data')
+if USE_SMOTE:
+    print('  - SMOTE oversampling applied within each CV fold')
 print('  - All 9 models compared fairly with identical CV splits')
