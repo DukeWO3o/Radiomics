@@ -60,7 +60,7 @@ MV_MISSING = 0.30
 MV_VARIANCE = 0.05
 USE_SMOTE = True             # Set False to disable SMOTE
 SMOTE_K_NEIGHBORS = 5        # k_neighbors for SMOTE
-PROTECTED_FEATURES = ['age']  # columns always kept (never filtered by mRMR); use [] for none
+PROTECTED_FEATURES = ['age', 'CRP', 'WBC', 'LDH']  # columns always kept (never filtered by mRMR); use [] for none
 
 print('='*60)
 print(' Radiomics RMPP Prediction - NO Data Leakage Pipeline')
@@ -560,6 +560,36 @@ plt.tight_layout()
 plt.savefig(os.path.join(OUTPUT_DIR, f'08_SHAP_Bar_{best_name}.svg'), dpi=300)
 plt.close()
 print('  SHAP plots saved.')
+
+# ===== Bootstrap 95% CI for validation AUC (1000 iterations) =====
+print('\n[8b] Bootstrap 95% CI for validation AUC (1000 iterations) ...')
+np.random.seed(RANDOM_STATE)
+bootstrap_results = {}
+for name, model in best_models.items():
+    y_prob = model.predict_proba(X_valid_scaled.values)[:, 1]
+    aucs = []
+    n_val = len(y_valid)
+    for _ in range(1000):
+        idx = np.random.choice(n_val, n_val, replace=True)
+        try:
+            aucs.append(roc_auc_score(y_valid[idx], y_prob[idx]))
+        except ValueError:
+            aucs.append(np.nan)
+    aucs = np.array(aucs)
+    aucs = aucs[~np.isnan(aucs)]
+    ci_low = np.percentile(aucs, 2.5)
+    ci_high = np.percentile(aucs, 97.5)
+    bootstrap_results[name] = {'AUC_95CI_Low': ci_low, 'AUC_95CI_High': ci_high}
+    print(f'  {name:20s} AUC={valid_df_res.loc[name,"Valid_AUC"]:.4f}  '
+          f'95% CI=[{ci_low:.4f}, {ci_high:.4f}]')
+
+# Merge bootstrap CI into valid_results and all_df
+ci_df = pd.DataFrame(bootstrap_results).T
+valid_df_res = valid_df_res.join(ci_df)
+all_df = train_df_res.join(valid_df_res)
+all_df.to_excel(os.path.join(OUTPUT_DIR, '04_Model_Performance.xlsx'), index=True)
+print('  Bootstrap CI saved to 04_Model_Performance.xlsx.')
+
 # ========================= ����10: У׼���� =========================
 print(f'\n[10] Calibration curve for best model: {best_name}...')
 
@@ -698,6 +728,24 @@ for i in range(n_models):
 
 delong_df = pd.DataFrame(delong_matrix, index=model_names, columns=model_names)
 delong_df.to_excel(os.path.join(OUTPUT_DIR, '11_DeLong_Pvalues.xlsx'))
+
+# Apply Benjamini-Hochberg FDR correction to DeLong p-values
+p_flat = []
+p_positions = []
+for i in range(n_models):
+    for j in range(i + 1, n_models):
+        p_flat.append(delong_matrix[i, j])
+        p_positions.append((i, j))
+if len(p_flat) > 0:
+    from statsmodels.sandbox.stats.multicomp import multipletests
+    _, p_corrected, _, _ = multipletests(p_flat, method='fdr_bh')
+    delong_corrected = np.ones((n_models, n_models))
+    for (i, j), pc in zip(p_positions, p_corrected):
+        delong_corrected[i, j] = pc
+        delong_corrected[j, i] = pc
+    delong_corrected_df = pd.DataFrame(delong_corrected, index=model_names, columns=model_names)
+    delong_corrected_df.to_excel(os.path.join(OUTPUT_DIR, '11_DeLong_Pvalues_FDRcorrected.xlsx'))
+    print('  DeLong FDR-corrected p-values saved.')
 print('  DeLong p-value matrix saved.')
 
 # ========================= ����13: ���ջ��� =========================

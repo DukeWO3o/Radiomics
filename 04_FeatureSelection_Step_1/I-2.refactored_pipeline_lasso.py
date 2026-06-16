@@ -468,9 +468,38 @@ try:
     plt.title(f"SHAP Importance - {best_name}"); plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_DIR, f"08_SHAP_Bar_{best_name}.svg"), dpi=300); plt.close()
     print("  SHAP done.")
+
+
 except Exception as e:
     print(f"  SHAP failed: {e}")
 
+# ===== Bootstrap 95% CI for validation AUC (1000 iterations) =====
+print("\n[9b] Bootstrap 95% CI for validation AUC (1000 iterations) ...")
+np.random.seed(RANDOM_STATE)
+bootstrap_results = {}
+for name, m in best_models.items():
+    y_prob = m.predict_proba(X_full_valid.values)[:, 1]
+    aucs = []
+    n_val = len(y_valid)
+    for _ in range(1000):
+        idx = np.random.choice(n_val, n_val, replace=True)
+        try:
+            aucs.append(roc_auc_score(y_valid[idx], y_prob[idx]))
+        except ValueError:
+            aucs.append(np.nan)
+    aucs = np.array(aucs)
+    aucs = aucs[~np.isnan(aucs)]
+    ci_low = np.percentile(aucs, 2.5)
+    ci_high = np.percentile(aucs, 97.5)
+    bootstrap_results[name] = {"AUC_95CI_Low": ci_low, "AUC_95CI_High": ci_high}
+    print(f"  {name:20s} AUC={va_df.loc[name,"Valid_AUC"]:.4f}  "
+          f"95% CI=[{ci_low:.4f}, {ci_high:.4f}]")
+
+ci_df = pd.DataFrame(bootstrap_results).T
+va_df = va_df.join(ci_df)
+all_df = tr_df.join(va_df)
+all_df.to_excel(os.path.join(OUTPUT_DIR, "04_Model_Performance.xlsx"), index=True)
+print("  Bootstrap CI saved.")
 # =========================  STEP 10: Calibration  =========================
 print(f"\n[10] Calibration curve for {best_name} ...")
 from statsmodels.nonparametric.smoothers_lowess import lowess
@@ -557,6 +586,24 @@ for i in range(n):
         try: dm[i,j] = dm[j,i] = delong_p(y_valid, all_pred_probs[names[i]], all_pred_probs[names[j]])
         except: pass
 pd.DataFrame(dm, index=names, columns=names).to_excel(os.path.join(OUTPUT_DIR, "11_DeLong_Pvalues.xlsx"))
+
+# FDR correction on DeLong p-values
+p_flat = []
+p_positions = []
+for i in range(n):
+    for j in range(i + 1, n):
+        p_flat.append(dm[i, j])
+        p_positions.append((i, j))
+if len(p_flat) > 0:
+    from statsmodels.sandbox.stats.multicomp import multipletests
+    _, p_corrected, _, _ = multipletests(p_flat, method="fdr_bh")
+    dm_corrected = np.ones((n, n))
+    for (i, j), pc in zip(p_positions, p_corrected):
+        dm_corrected[i, j] = pc
+        dm_corrected[j, i] = pc
+    pd.DataFrame(dm_corrected, index=names, columns=names).to_excel(
+        os.path.join(OUTPUT_DIR, "11_DeLong_Pvalues_FDRcorrected.xlsx"))
+    print("  DeLong FDR-corrected p-values saved.")
 print("  DeLong matrix saved.")
 
 # =========================  FINAL  =========================
