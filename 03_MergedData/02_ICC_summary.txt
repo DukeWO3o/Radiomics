@@ -1,0 +1,118 @@
+============================================================
+ICC 特征可重复性分析
+============================================================
+匹配病例数: 50
+分析特征数: 102
+ICC > 0.75 特征数: 98
+ICC > 0.75 特征占比: 96.1%
+ICC 均值: 0.9318
+ICC 中位数: 0.9662
+ICC 范围: [0.4854, 0.9999]
+
+ICC > 0.75 的特征:
+----------------------------------------
+  firstorder_Minimum                                  ICC = 0.9999
+  firstorder_10Percentile                             ICC = 0.9991
+  gldm_GrayLevelNonUniformity                         ICC = 0.9971
+  glszm_GrayLevelNonUniformity                        ICC = 0.9938
+  glrlm_GrayLevelNonUniformity                        ICC = 0.9938
+  ngtdm_Coarseness                                    ICC = 0.9933
+  gldm_LargeDependenceLowGrayLevelEmphasis            ICC = 0.9930
+  gldm_SmallDependenceLowGrayLevelEmphasis            ICC = 0.9930
+  gldm_LowGrayLevelEmphasis                           ICC = 0.9930
+  glrlm_LongRunLowGrayLevelEmphasis                   ICC = 0.9926
+  glszm_LargeAreaLowGrayLevelEmphasis                 ICC = 0.9926
+  glrlm_RunVariance                                   ICC = 0.9922
+  glszm_ZoneVariance                                  ICC = 0.9922
+  gldm_SmallDependenceEmphasis                        ICC = 0.9906
+  gldm_DependenceVariance                             ICC = 0.9903
+  glrlm_RunPercentage                                 ICC = 0.9902
+  glszm_ZonePercentage                                ICC = 0.9902
+  gldm_LargeDependenceEmphasis                        ICC = 0.9902
+  glszm_LargeAreaEmphasis                             ICC = 0.9899
+  glrlm_LongRunEmphasis                               ICC = 0.9899
+  gldm_DependenceNonUniformityNormalized              ICC = 0.9899
+  firstorder_Median                                   ICC = 0.9898
+  glcm_InverseVariance                                ICC = 0.9895
+  glcm_Id                                             ICC = 0.9895
+  glcm_Idm                                            ICC = 0.9895
+  glcm_DifferenceAverage                              ICC = 0.9894
+  glcm_Contrast                                       ICC = 0.9894
+  glcm_DifferenceVariance                             ICC = 0.9893
+  glcm_DifferenceEntropy                              ICC = 0.9892
+  glrlm_LongRunHighGrayLevelEmphasis                  ICC = 0.9890
+  glszm_LargeAreaHighGrayLevelEmphasis                ICC = 0.9890
+  glszm_SizeZoneNonUniformityNormalized               ICC = 0.9861
+  glrlm_RunLengthNonUniformityNormalized              ICC = 0.9861
+  glszm_SmallAreaLowGrayLevelEmphasis                 ICC = 0.9851
+  glrlm_ShortRunLowGrayLevelEmphasis                  ICC = 0.9851
+  glcm_Imc1                                           ICC = 0.9836
+  shape2D_MinorAxisLength                             ICC = 0.9829
+  glrlm_LowGrayLevelRunEmphasis                       ICC = 0.9818
+  glszm_LowGrayLevelZoneEmphasis                      ICC = 0.9818
+  glcm_JointAverage                                   ICC = 0.9802
+  glcm_SumAverage                                     ICC = 0.9802
+  glrlm_ShortRunEmphasis                              ICC = 0.9801
+  glszm_SmallAreaEmphasis                             ICC = 0.9801
+  firstorder_Mean                                     ICC = 0.9772
+  gldm_LargeDependenceHighGrayLevelEmphasis           ICC = 0.9755
+  shape2D_Elongation                                  ICC = 0.9741
+  gldm_DependenceNonUniformity                        ICC = 0.9729
+  glcm_Autocorrelation                                ICC = 0.9729
+  gldm_HighGrayLevelEmphasis                          ICC = 0.9727
+  gldm_SmallDependenceHighGrayLevelEmphasis           ICC = 0.9679
+  firstorder_RootMeanSquared                          ICC = 0.9665
+  shape2D_MajorAxisLength                             ICC = 0.9659
+  shape2D_MeshSurface                                 ICC = 0.9646
+  shape2D_PixelSurface                                ICC = 0.9646
+  glcm_Idn                                            ICC = 0.9601
+  shape2D_MaximumDiameter                             ICC = 0.9586
+  glcm_MaximumProbability                             ICC = 0.9552
+  glszm_SizeZoneNonUniformity                         ICC = 0.9547
+  glrlm_RunLengthNonUniformity                        ICC = 0.9547
+  glszm_ZoneEntropy                                   ICC = 0.9463
+  glrlm_RunEntropy                                    ICC = 0.9463
+  ngtdm_Complexity                                    ICC = 0.9431
+  glcm_JointEnergy                                    ICC = 0.9383
+  shape2D_PerimeterSurfaceRatio                       ICC = 0.9382
+  glrlm_ShortRunHighGrayLevelEmphasis                 ICC = 0.9373
+  glszm_SmallAreaHighGrayLevelEmphasis                ICC = 0.9373
+  firstorder_RobustMeanAbsoluteDeviation              ICC = 0.9364
+  firstorder_Uniformity                               ICC = 0.9312
+  glrlm_HighGrayLevelRunEmphasis                      ICC = 0.9302
+  glszm_HighGrayLevelZoneEmphasis                     ICC = 0.9302
+  gldm_DependenceEntropy                              ICC = 0.9261
+  glcm_JointEntropy                                   ICC = 0.9211
+  glcm_SumEntropy                                     ICC = 0.9183
+  ngtdm_Busyness                                      ICC = 0.9174
+  firstorder_MeanAbsoluteDeviation                    ICC = 0.9162
+  firstorder_InterquartileRange                       ICC = 0.9098
+  shape2D_Perimeter                                   ICC = 0.9073
+  firstorder_Entropy                                  ICC = 0.9056
+  firstorder_90Percentile                             ICC = 0.9003
+  firstorder_TotalEnergy                              ICC = 0.8975
+  firstorder_Energy                                   ICC = 0.8975
+  firstorder_Variance                                 ICC = 0.8890
+  ngtdm_Contrast                                      ICC = 0.8865
+  firstorder_Range                                    ICC = 0.8864
+  glcm_Imc2                                           ICC = 0.8837
+  glcm_SumSquares                                     ICC = 0.8834
+  gldm_GrayLevelVariance                              ICC = 0.8831
+  glcm_ClusterTendency                                ICC = 0.8830
+  glcm_Correlation                                    ICC = 0.8406
+  glrlm_GrayLevelNonUniformityNormalized              ICC = 0.8299
+  glszm_GrayLevelNonUniformityNormalized              ICC = 0.8299
+  ngtdm_Strength                                      ICC = 0.7897
+  glszm_GrayLevelVariance                             ICC = 0.7848
+  glrlm_GrayLevelVariance                             ICC = 0.7848
+  firstorder_Kurtosis                                 ICC = 0.7817
+  glcm_Idmn                                           ICC = 0.7767
+  firstorder_Skewness                                 ICC = 0.7661
+  glcm_MCC                                            ICC = 0.7609
+
+ICC <= 0.75 的特征 (已剔除):
+----------------------------------------
+  glcm_ClusterProminence                              ICC = 0.7293
+  glcm_ClusterShade                                   ICC = 0.7020
+  shape2D_Sphericity                                  ICC = 0.6633
+  firstorder_Maximum                                  ICC = 0.4854

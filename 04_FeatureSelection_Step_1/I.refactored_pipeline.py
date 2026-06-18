@@ -58,7 +58,7 @@ MRMR_K = 9
 P_THRESHOLD = 0.05
 MV_MISSING = 0.30
 MV_VARIANCE = 0.05
-USE_SMOTE = True             # Set False to disable SMOTE
+USE_SMOTE = False             # Set False to disable SMOTE
 SMOTE_K_NEIGHBORS = 5        # k_neighbors for SMOTE
 PROTECTED_FEATURES = ['age', 'CRP', 'WBC', 'LDH']  # columns always kept (never filtered by mRMR); use [] for none
 

@@ -5,10 +5,10 @@ import pandas as pd
 from tqdm import tqdm
 
 # 输入路径
-image_dir = r'F:/2023original/DCM-RMPP/01_PNG'
-mask_dir = r'F:/2023original/DCM-RMPP/03_Binarized'
-output_csv = r'F:/2023original/DCM-RMPP/04_Pyradiomics/RMPP-radiomics_features_.csv'
-config_file = r'F:/2023/Pyradiomics结果/radiomics_config.yaml'
+image_dir = r"E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\ROI_review_50cases\DCM-RMPP\01_PNG"
+mask_dir = r"E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\ROI_review_50cases\DCM-RMPP\03_Binarized"
+output_csv = r"E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\ROI_review_50cases\DCM-RMPP\RMPP-radiomics_features_.csv"
+config_file = r"E:\Softwares\PycharmProject\Radiomics\01_PreProcess\radiomics_config.yaml"
 
 # 初始化提取器（从 YAML 文件加载）
 extractor = featureextractor.RadiomicsFeatureExtractor(config_file)

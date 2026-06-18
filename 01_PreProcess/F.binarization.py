@@ -2,8 +2,8 @@ from PIL import Image
 import numpy as np
 import os
 
-input_folder = 'F:/2023original/DCM-RMPP/02_Mask'
-output_folder = 'F:/2023original/DCM-RMPP/03_Binarized'
+input_folder = r"E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\ROI_review_50cases\DCM\02_Mask"
+output_folder = r"E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\ROI_review_50cases\DCM\03_Binarized"
 os.makedirs(output_folder, exist_ok=True)
 
 for filename in os.listdir(input_folder):

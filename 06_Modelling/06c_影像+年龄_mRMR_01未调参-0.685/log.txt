@@ -1,0 +1,22 @@
+
+[1] Loading data...
+  Raw shape: (931, 142)
+
+[2] Splitting train/validation (80:20, stratified)...
+  Train: (744, 142), Valid: (187, 142)
+  Train labels: {1: 445, 0: 299}
+
+[3] Preprocessing (label-free, no leakage)...
+  After missing filter: 102 features
+  After variance filter: 62 features
+  Standardization done.
+
+[4] Correlation visualization...
+  Saved correlation plots.
+
+Ready for CV-internal feature selection + modeling.
+  Candidate features (input to CV): 62
+[5] CV-internal feature selector defined.
+[6] 9 models configured with 5-fold CV.
+
+[7] Training 9 models (feature selection INSIDE each CV fold)...
