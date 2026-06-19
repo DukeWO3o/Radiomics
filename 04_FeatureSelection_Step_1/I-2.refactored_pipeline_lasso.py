@@ -292,6 +292,7 @@ print("\n[7] Training (LASSO feature selection inside each CV fold) ...")
 print("=" * 60)
 
 best_models = {}
+best_params_all = {}
 train_results = {}
 valid_results = {}
 all_pred_probs = {}
@@ -314,6 +315,7 @@ for name, cfg in models_config.items():
     grid.fit(X_full_train.values, y_train)
     best_model = grid.best_estimator_
     best_models[name] = best_model
+    best_params_all[name] = grid.best_params_
     n_feats = len(best_model.named_steps["selector"].selected_features_)
     alpha = best_model.named_steps["selector"].lasso_.alpha_ if best_model.named_steps["selector"].lasso_ else "N/A"
     print(f"  Lasso alpha={alpha:.4f}, features kept={n_feats}")
@@ -400,6 +402,19 @@ for name, m in best_models.items():
         })
 feat_df = pd.DataFrame(feature_records)
 feat_df.to_excel(os.path.join(OUTPUT_DIR, "04b_Selected_Features.xlsx"), index=False)
+print("  - 04b_Selected_Features.xlsx")
+
+# ===== Export best hyperparameters for all models =====
+print("  Exporting best hyperparameters ...")
+params_records = []
+for name, params in best_params_all.items():
+    record = {"Model": name, "Valid_AUC": va_df.loc[name, "Valid_AUC"]}
+    for k, v in params.items():
+        record[k] = str(v)
+    params_records.append(record)
+params_df = pd.DataFrame(params_records)
+params_df.to_excel(os.path.join(OUTPUT_DIR, "04c_Best_Hyperparameters.xlsx"), index=False)
+print("  - 04c_Best_Hyperparameters.xlsx")
 
 # Best model detail
 best_sel = best_model.named_steps["selector"]

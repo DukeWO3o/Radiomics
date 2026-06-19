@@ -51,7 +51,7 @@ PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 OUTPUT_DIR = os.path.join(PROJECT_ROOT, '06_Modelling', 'output')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\02c_ICC_filtered_影像+年龄版-v4-374-557-931.xlsx"
+INPUT_FILE = r"E:\Softwares\PycharmProject\Radiomics\03_MergedData\02d_ICC_filtered_影像+临床版-v4-374-557-931.xlsx"
 N_FOLDS = 5
 RANDOM_STATE = 42
 MRMR_K = 9
@@ -330,6 +330,7 @@ print('\n[7] Training 9 models (feature selection INSIDE each CV fold)...')
 print('=' * 60)
 
 best_models = {}
+best_params_all = {}
 train_results = {}
 valid_results = {}
 all_pred_probs = {}  # for DeLong test
@@ -359,6 +360,7 @@ for name, config in models_config.items():
     grid.fit(X_train_scaled.values, y_train)
     best_model = grid.best_estimator_
     best_models[name] = best_model
+    best_params_all[name] = grid.best_params_
     print(f'  Best params: {grid.best_params_}')
     print(f'  Selected features: {best_model.named_steps["selector"].selected_features_}')
 
@@ -454,6 +456,19 @@ for name, model in best_models.items():
     })
 feat_df = pd.DataFrame(feature_records)
 feat_df.to_excel(os.path.join(OUTPUT_DIR, '04b_Selected_Features.xlsx'), index=False)
+print('  - 04b_Selected_Features.xlsx')
+
+# ===== Export best hyperparameters for all models =====
+print('  Exporting best hyperparameters ...')
+params_records = []
+for name, params in best_params_all.items():
+    record = {'Model': name, 'Valid_AUC': valid_df_res.loc[name, 'Valid_AUC']}
+    for k, v in params.items():
+        record[k] = str(v)
+    params_records.append(record)
+params_df = pd.DataFrame(params_records)
+params_df.to_excel(os.path.join(OUTPUT_DIR, '04c_Best_Hyperparameters.xlsx'), index=False)
+print('  - 04c_Best_Hyperparameters.xlsx')
 
 # Best model detailed feature list
 best_sel = best_model.named_steps['selector']
