@@ -286,32 +286,32 @@ models_config = {
     },
     'RandomForest': {
         'model': RandomForestClassifier(random_state=RANDOM_STATE, class_weight='balanced'),
-        'params': {'classifier__n_estimators': [100, 200], 'classifier__max_depth': [3, 4, 5],
-                   'classifier__min_samples_split': [20, 30], 'classifier__min_samples_leaf': [10, 15],
-                   'classifier__max_features': [0.3, 0.5], 'classifier__bootstrap': [True]}
+        'params': {'classifier__n_estimators': [100, 200], 'classifier__max_depth': [3, 4],
+                   'classifier__min_samples_split': [20, 30, 40], 'classifier__min_samples_leaf': [10, 15],
+                   'classifier__max_features': [0.4, 0.5, 0.6], 'classifier__bootstrap': [True]}
     },
     'MLP': {
         'model': MLPClassifier(max_iter=2000, random_state=RANDOM_STATE, early_stopping=True),
-        'params': {'classifier__hidden_layer_sizes': [(50,), (100,), (50, 25)],
-                   'classifier__alpha': [0.0001, 0.001, 0.01], 'classifier__activation': ['relu', 'tanh']}
+        'params': {'classifier__hidden_layer_sizes': [(64, 32, 16), (100, 50, 25), (50, 25)],
+                   'classifier__alpha': [0.005, 0.01, 0.05], 'classifier__activation': ['relu', 'tanh']}
     },
     'SVM': {
         'model': SVC(probability=True, random_state=RANDOM_STATE, class_weight='balanced'),
-        'params': {'classifier__C': [0.1, 1, 5, 10], 'classifier__gamma': ['scale', 'auto'],
-                   'classifier__kernel': ['rbf', 'linear']}
+        'params': {'classifier__C': [0.5, 1, 2], 'classifier__gamma': ['scale', 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1],
+                   'classifier__kernel': ['rbf']}
     },
     'XGBoost': {
         'model': XGBClassifier(eval_metric='logloss', random_state=RANDOM_STATE),
         'params': {'classifier__n_estimators': [100, 200], 'classifier__max_depth': [3, 4],
-                   'classifier__learning_rate': [0.05, 0.1, 0.15], 'classifier__gamma': [0, 0.1, 0.5],
-                   'classifier__reg_alpha': [0, 0.1, 0.5], 'classifier__reg_lambda': [1, 5, 10]}
+                   'classifier__learning_rate': [0.05, 0.1, 0.15], 'classifier__gamma': [0, 0.01, 0.05],
+                   'classifier__reg_alpha': [1.0, 2.0, 3.0], 'classifier__reg_lambda': [5, 10, 15]}
     },
     'LightGBM': {
         'model': LGBMClassifier(random_state=RANDOM_STATE, verbose=-1),
-        'params': {'classifier__n_estimators': [100, 200], 'classifier__max_depth': [3, 4],
-                   'classifier__learning_rate': [0.05, 0.1], 'classifier__num_leaves': [15, 31],
-                   'classifier__min_child_samples': [20, 30], 'classifier__reg_alpha': [0.1, 0.3],
-                   'classifier__reg_lambda': [0.1, 0.3]}
+        'params': {'classifier__n_estimators': [100, 150], 'classifier__max_depth': [4, 5],
+                   'classifier__learning_rate': [0.02, 0.05, 0.1], 'classifier__num_leaves': [12, 15, 18],
+                   'classifier__min_child_samples': [50, 100, 150], 'classifier__reg_alpha': [0.2, 0.3, 0.4],
+                   'classifier__reg_lambda': [0.4, 0.5, 0.6]}
     },
     'GaussianNB': {
         'model': GaussianNB(),
