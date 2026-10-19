@@ -54,4 +54,21 @@ Supplementary/
 # Manuscript folders (do not upload)
 European Journal of Pediatrics/
 Frontiers_Word_Templates/
+Pediatric Radiology/
 Manuscript/
+08_RMPP_Prediction_App/
+RMPP-APP/
+
+# ===== Patient-level data (PHI) - never commit =====
+# Images/masks: filenames are patient names or their pinyin
+00_DataSetSample/**/*.png
+# Radiomics/clinical tables: contain 姓名 / 住院号 / image=pinyin name
+00_DataSetSample/**/*.xlsx
+02_OriginalData/*.xlsx
+02_OriginalData/**/*.xlsx
+03_MergedData/*.xlsx
+04_FeatureSelection_Step_1/04*_Processing_Results_*/*_data.xlsx
+05_FeatureSelection_Step_2/**/train_*.xlsx
+05_FeatureSelection_Step_2/**/val_*.xlsx
+07_Baseline/*.sav
+_tmp_*.txt
