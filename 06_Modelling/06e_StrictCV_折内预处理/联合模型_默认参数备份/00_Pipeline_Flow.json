@@ -1,0 +1,60 @@
+{
+  "pipeline": "strict_cv_internal",
+  "modality": "combined",
+  "split": {
+    "train_n": 744,
+    "validation_n": 187,
+    "random_state": 42,
+    "stratified": true
+  },
+  "order": [
+    "Missing-rate filter: fitted on each inner training fold",
+    "Mean imputation: means fitted on each inner training fold",
+    "Constant-variance filter: threshold 0.0 in raw units, fitted within fold",
+    "Z-score standardization: fitted within each inner training fold",
+    "Mann-Whitney U + Benjamini-Hochberg FDR: fitted within fold",
+    "mRMR: fitted within fold, K=8 radiomics features",
+    "Classifier: fitted within the same fold"
+  ],
+  "variance_threshold_note": "The previous 0.05 threshold after Z-score scaling was removed because it is not meaningful after standardization; only constant features are removed before scaling.",
+  "validation_usage": "The 20% internal validation set was untouched until final model evaluation.",
+  "model_selection": "Best classifier selected by mean training-CV AUC from GridSearchCV; validation AUC was not used for model selection.",
+  "selection_frequency_file": "03_Selection_Frequency.xlsx",
+  "fold_details_file": "03_Fold_Preprocessing_and_Selection.xlsx",
+  "icc_audit": {
+    "icc_sample_n": 50,
+    "validation_n": 187,
+    "overlap_n": 6,
+    "overlap_images": [
+      "liusiqi.png",
+      "wangye.png",
+      "wangzhangxu.png",
+      "yeshuyuan.png",
+      "yuchenghan.png",
+      "zhangxiangtong.png"
+    ],
+    "full_sample_pass_n": 98,
+    "validation_excluded_pass_n": 98,
+    "same_feature_set": true,
+    "current_model_radiomics_n": 98,
+    "current_set_matches_audit": true,
+    "note": "ICC filtering is a fixed inter-rater reliability audit; it was not refitted using the internal validation outcomes."
+  },
+  "mrmr_k": 8,
+  "final_features": [
+    "age",
+    "CRP",
+    "WBC",
+    "LDH",
+    "glszm_LargeAreaHighGrayLevelEmphasis",
+    "glcm_Imc1",
+    "glcm_Autocorrelation",
+    "shape2D_PixelSurface",
+    "glrlm_GrayLevelVariance",
+    "glszm_ZoneEntropy",
+    "firstorder_90Percentile",
+    "gldm_DependenceEntropy"
+  ],
+  "final_feature_source": "selector refitted on the full training set after hyperparameter selection",
+  "mrmr_applied": true
+}

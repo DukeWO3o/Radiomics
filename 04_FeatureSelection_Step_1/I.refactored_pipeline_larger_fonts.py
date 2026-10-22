@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import pandas as pd
 import numpy as np
-import os, warnings, joblib
+import os, warnings, joblib, json
 warnings.filterwarnings('ignore')
 
 import matplotlib.pyplot as plt
@@ -754,6 +754,51 @@ if len(p_flat) > 0:
     delong_corrected_df.to_excel(os.path.join(OUTPUT_DIR, '11_DeLong_Pvalues_FDRcorrected.xlsx'))
     print('  DeLong FDR-corrected p-values saved.')
 print('  DeLong p-value matrix saved.')
+
+# ========================= Export preprocessing bundle =========================
+print('\n[12b] Exporting preprocessing bundle for external validation...')
+joblib.dump(scaler, os.path.join(OUTPUT_DIR, '04_StandardScaler.pkl'))
+joblib.dump(train_means, os.path.join(OUTPUT_DIR, '04_Imputation_Means.pkl'))
+model_selected_features = {}
+for name, model in best_models.items():
+    sel = model.named_steps['selector'].selected_features_
+    indices = [int(f.replace('f', '')) for f in sel]
+    model_selected_features[name] = [feature_names_all[i] for i in indices if i < len(feature_names_all)]
+pipeline_config = {
+    'pipeline_type': 'cv_internal_pipeline',
+    'model_names': list(best_models.keys()),
+    'feature_order': feature_names_all,
+    'protected_features': PROTECTED_FEATURES,
+    'model_selected_features': model_selected_features,
+    'internal_valid_auc': {name: float(valid_df_res.loc[name, 'Valid_AUC'])
+                           for name in best_models.keys()},
+    'random_state': RANDOM_STATE,
+    'n_folds': N_FOLDS,
+    'mrmr_k': MRMR_K,
+    'p_threshold': P_THRESHOLD,
+    'use_smote': USE_SMOTE,
+    'input_file': INPUT_FILE,
+}
+with open(os.path.join(OUTPUT_DIR, 'model_config.json'), 'w', encoding='utf-8') as f:
+    json.dump(pipeline_config, f, ensure_ascii=False, indent=2)
+print(f'  Preprocessing bundle exported to: {OUTPUT_DIR}')
+
+# Also export a deployment bundle for the Streamlit app: plain classifiers +
+# full-feature scaler/imputation + per-model selected feature names.
+print('\n[12c] Exporting app deployment bundle...')
+APP_MODELS_DIR = os.path.join(PROJECT_ROOT, '08_RMPP_Prediction_App', 'models')
+os.makedirs(APP_MODELS_DIR, exist_ok=True)
+joblib.dump(scaler, os.path.join(APP_MODELS_DIR, '04_StandardScaler.pkl'))
+joblib.dump(train_means, os.path.join(APP_MODELS_DIR, '04_Imputation_Means.pkl'))
+for name, model in best_models.items():
+    # Save the plain classifier; the app subsets columns via model_selected_features
+    joblib.dump(model.named_steps['classifier'],
+                os.path.join(APP_MODELS_DIR, f'06_{name}_best_model.pkl'))
+app_config = dict(pipeline_config)
+app_config['version'] = 'cv-internal-v1'
+with open(os.path.join(APP_MODELS_DIR, 'model_config.json'), 'w', encoding='utf-8') as f:
+    json.dump(app_config, f, ensure_ascii=False, indent=2)
+print(f'  App bundle exported to: {APP_MODELS_DIR}')
 
 # ========================= ����13: ���ջ��� =========================
 print('\n' + '=' * 60)

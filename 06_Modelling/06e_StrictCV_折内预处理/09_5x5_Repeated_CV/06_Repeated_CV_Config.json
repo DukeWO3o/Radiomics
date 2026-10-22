@@ -1,0 +1,74 @@
+{
+  "script": "I-5.repeated_5x5_cv_strict.py",
+  "base_pipeline": "E:\\Softwares\\PycharmProject\\Radiomics\\04_FeatureSelection_Step_1\\I.refactored_pipeline_strict_cv.py",
+  "input_file": "E:\\Softwares\\PycharmProject\\Radiomics\\03_MergedData\\02d_ICC_filtered_影像+临床版-v4-374-557-931.xlsx",
+  "modality": "combined",
+  "training_n": 744,
+  "internal_validation_n_not_used": 187,
+  "n_splits": 5,
+  "n_repeats": 5,
+  "random_state": 42,
+  "final_params": {
+    "LogisticRegression": {
+      "C": 0.1,
+      "penalty": "l2",
+      "solver": "liblinear"
+    },
+    "DecisionTree": {
+      "max_depth": 3,
+      "min_samples_leaf": 10,
+      "min_samples_split": 40,
+      "max_features": null,
+      "ccp_alpha": 0.0
+    },
+    "RandomForest": {
+      "n_estimators": 100,
+      "max_depth": 3,
+      "min_samples_leaf": 10,
+      "min_samples_split": 30,
+      "max_features": 0.5,
+      "bootstrap": true
+    },
+    "MLP": {
+      "hidden_layer_sizes": [
+        128,
+        64
+      ],
+      "alpha": 0.01,
+      "activation": "relu"
+    },
+    "SVM": {
+      "C": 2,
+      "gamma": 0.025,
+      "kernel": "rbf"
+    },
+    "XGBoost": {
+      "n_estimators": 30,
+      "max_depth": 2,
+      "learning_rate": 0.05,
+      "subsample": 0.8,
+      "colsample_bytree": 0.5,
+      "min_child_weight": 10,
+      "reg_alpha": 2,
+      "reg_lambda": 10,
+      "scale_pos_weight": 0.67
+    },
+    "LightGBM": {
+      "n_estimators": 50,
+      "max_depth": 3,
+      "learning_rate": 0.03,
+      "num_leaves": 7,
+      "min_child_samples": 100,
+      "reg_lambda": 0.6
+    },
+    "GaussianNB": {
+      "var_smoothing": 1e-12
+    },
+    "KNN": {
+      "n_neighbors": 41,
+      "weights": "uniform",
+      "metric": "euclidean"
+    }
+  },
+  "output_workbook": "E:\\Softwares\\PycharmProject\\Radiomics\\06_Modelling\\06e_StrictCV_折内预处理\\09_5x5_Repeated_CV\\01_5x5_Repeated_CV_Results.xlsx"
+}

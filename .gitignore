@@ -72,3 +72,22 @@ RMPP-APP/
 05_FeatureSelection_Step_2/**/val_*.xlsx
 07_Baseline/*.sav
 _tmp_*.txt
+
+# Split manifests (image column stores pinyin patient names)
+**/00_Split_Manifest.xlsx
+**/00_Data_Split_Manifest.xlsx
+
+# Model binaries and patient manifests: KNN neighbours, SVM support vectors and
+# DataFrame indices embed training rows and pinyin patient names
+*.pkl
+*.joblib
+**/*Patient_Manifest.pkl
+
+# App working copy: build artifacts, bundled models and demo data
+08_RMPP_Prediction_App_CV/build/
+08_RMPP_Prediction_App_CV/dist/
+08_RMPP_Prediction_App_CV/models/
+08_RMPP_Prediction_App_CV/demo/
+08_RMPP_Prediction_App_CV/__pycache__/
+
+debug.log

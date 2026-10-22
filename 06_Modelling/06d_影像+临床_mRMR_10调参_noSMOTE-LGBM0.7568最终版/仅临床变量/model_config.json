@@ -1,0 +1,110 @@
+{
+  "modality": "clinical",
+  "pipeline_type": "cv_internal_pipeline",
+  "model_names": [
+    "LogisticRegression",
+    "DecisionTree",
+    "RandomForest",
+    "MLP",
+    "SVM",
+    "XGBoost",
+    "LightGBM",
+    "GaussianNB",
+    "KNN"
+  ],
+  "feature_order": [
+    "age",
+    "CRP",
+    "WBC",
+    "LDH"
+  ],
+  "protected_features": [
+    "age",
+    "CRP",
+    "WBC",
+    "LDH"
+  ],
+  "model_selected_features": {
+    "LogisticRegression": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ],
+    "DecisionTree": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ],
+    "RandomForest": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ],
+    "MLP": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ],
+    "SVM": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ],
+    "XGBoost": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ],
+    "LightGBM": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ],
+    "GaussianNB": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ],
+    "KNN": [
+      "age",
+      "CRP",
+      "WBC",
+      "LDH"
+    ]
+  },
+  "internal_valid_auc": {
+    "LogisticRegression": 0.7348809523809524,
+    "DecisionTree": 0.6483333333333333,
+    "RandomForest": 0.7286904761904762,
+    "MLP": 0.7115476190476191,
+    "SVM": 0.7222619047619047,
+    "XGBoost": 0.7254166666666667,
+    "LightGBM": 0.7408333333333335,
+    "GaussianNB": 0.7195238095238095,
+    "KNN": 0.6673214285714286
+  },
+  "random_state": 42,
+  "n_folds": 5,
+  "mrmr_k": 9,
+  "p_threshold": 0.05,
+  "use_smote": false,
+  "input_file": "E:\\Softwares\\PycharmProject\\Radiomics\\03_MergedData\\02d_ICC_filtered_影像+临床版-v4-374-557-931.xlsx",
+  "input_features": [
+    "age",
+    "CRP",
+    "WBC",
+    "LDH"
+  ],
+  "train_n": 744,
+  "valid_n": 187,
+  "mrmr_applied": false,
+  "feature_selection_strategy": "all_clinical_features_protected"
+}
