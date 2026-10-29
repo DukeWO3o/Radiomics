@@ -1,18 +1,5 @@
-﻿# -*- coding: utf-8 -*-
-u'''
-=============================================================================
-Dice Coefficient Calculation between Two Radiologists' ROI Masks
-=============================================================================
-For each of the 50 sampled cases:
-  - R1 mask:  02_Mask/{pinyin}.png         (original / radiologist 1)
-  - R2 mask:  02_Mask - 对照/{Chinese}.png  (control / radiologist 2)
-
-Output:
-  - dice_results.xlsx   per-case Dice scores
-  - dice_summary.txt    aggregate statistics
-=============================================================================
-'''
 import os, sys
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -22,20 +9,22 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 
-# ======================== CONFIGURATION ========================
-MAPPING_FILE = r'E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\sampled_50_cases_file_mapping.xlsx'
-ROI_DIR      = r'E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample\ROI_review_50cases'
-OUTPUT_DIR   = r'E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample'
+
+PIPELINE_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PIPELINE_ROOT))
+from pipeline_paths import OUTPUT_ROOT
+
+MAPPING_FILE = OUTPUT_ROOT / "Reproducibility" / "sampled_50_cases_file_mapping.xlsx"
+ROI_DIR = OUTPUT_ROOT / "Reproducibility" / "ROI_review_50cases"
+OUTPUT_DIR = OUTPUT_ROOT / "Reproducibility"
 
 SUBDIR_R1 = '02_Mask'
-SUBDIR_R2 = '02_Mask - 对照'
-LABEL_MAP = {0: 'DCM', 1: 'DCM-RMPP'}
+SUBDIR_R2 = '02_Mask_R2'
+LABEL_MAP = {0: 'nonRMPP', 1: 'RMPP'}
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# ================================================================
-# 1. Load mapping
-# ================================================================
+
 print('=' * 60)
 print(' Dice Coefficient: Inter-Rater ROI Agreement')
 print('=' * 60)
@@ -43,9 +32,7 @@ print('=' * 60)
 mapping = pd.read_excel(MAPPING_FILE)
 print(f'\n[1] Loaded {len(mapping)} cases from mapping file')
 
-# ================================================================
-# 2. Calculate Dice per case
-# ================================================================
+
 print('\n[2] Calculating Dice coefficients ...')
 
 results = []
@@ -75,11 +62,11 @@ for idx, row in mapping.iterrows():
         })
         continue
 
-    # Load masks
+
     mask1 = np.array(Image.open(r1_path)).astype(bool)
     mask2 = np.array(Image.open(r2_path)).astype(bool)
 
-    # Verify same shape
+
     if mask1.shape != mask2.shape:
         print(f'  WARNING: shape mismatch for {pinyin}: '
               f'{mask1.shape} vs {mask2.shape}')
@@ -91,7 +78,7 @@ for idx, row in mapping.iterrows():
         })
         continue
 
-    # Dice = 2 * TP / (2*TP + FP + FN) = 2 * |A∩B| / (|A| + |B|)
+
     intersection = np.logical_and(mask1, mask2).sum()
     r1_px = mask1.sum()
     r2_px = mask2.sum()
@@ -110,9 +97,7 @@ for idx, row in mapping.iterrows():
 df = pd.DataFrame(results)
 print(f'    Done. {len(df)} cases, {len(errors)} errors')
 
-# ================================================================
-# 3. Summary statistics
-# ================================================================
+
 print('\n[3] Summary statistics ...')
 
 valid = df.dropna(subset=['dice'])
@@ -130,7 +115,7 @@ summary = {
     'dice_max': valid['dice'].max(),
 }
 
-# By label
+
 by_label = valid.groupby('label')['dice'].agg(['mean', 'std', 'min', 'max', 'count'])
 
 print(f'    Valid cases : {n_valid}/{n_total}')
@@ -142,21 +127,19 @@ print()
 print('    By label:')
 print(by_label.to_string())
 
-# ================================================================
-# 4. Save results
-# ================================================================
+
 print('\n[4] Saving results ...')
 
-# 4a. Excel
+
 dice_out = os.path.join(OUTPUT_DIR, 'dice_results.xlsx')
 df.to_excel(dice_out, index=False)
 print(f'    {dice_out}')
 
-# 4b. Histogram
+
 if n_valid > 0:
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-    # Overall histogram
+
     axes[0].hist(valid['dice'], bins=15, color='steelblue', edgecolor='white',
                  alpha=0.85)
     axes[0].axvline(valid['dice'].mean(), color='red', linestyle='--',
@@ -166,7 +149,7 @@ if n_valid > 0:
     axes[0].set_title(f'Dice Distribution (n={n_valid})')
     axes[0].legend()
 
-    # By label
+
     for lbl, color, name in [(0, '#2196F3', 'non-RMPP'), (1, '#F44336', 'RMPP')]:
         sub = valid[valid['label'] == lbl]['dice']
         if len(sub) > 0:
@@ -182,7 +165,7 @@ if n_valid > 0:
     plt.close()
     print(f'    {hist_out}')
 
-# 4c. Text report
+
 report_lines = [
     '=' * 60,
     'Dice Coefficient Report - Inter-Rater ROI Agreement',

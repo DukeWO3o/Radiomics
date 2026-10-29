@@ -1,0 +1,50 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+
+PIPELINE_ROOT = Path(__file__).resolve().parent
+
+INPUT_ROOT = PIPELINE_ROOT / "00_InputData"
+RAW_ROOT = INPUT_ROOT / "Raw"
+IMAGE_ROOT = INPUT_ROOT / "Images"
+CLINICAL_ROOT = INPUT_ROOT / "Clinical"
+REPRO_INPUT_ROOT = INPUT_ROOT / "Reproducibility"
+MODELING_INPUT_ROOT = INPUT_ROOT / "Modelling"
+PIXEL_INPUT_ROOT = INPUT_ROOT / "PixelSpacing"
+DEMO_ROOT = INPUT_ROOT / "Demo"
+
+OUTPUT_ROOT = PIPELINE_ROOT / "04_Modelling"
+FEATURE_OUTPUT_ROOT = OUTPUT_ROOT / "Features"
+COMBINED_OUTPUT_ROOT = OUTPUT_ROOT / "Combined"
+CLINICAL_OUTPUT_ROOT = OUTPUT_ROOT / "Clinical"
+RADIOMICS_OUTPUT_ROOT = OUTPUT_ROOT / "Radiomics"
+REPEATED_CV_OUTPUT_ROOT = OUTPUT_ROOT / "RepeatedCV"
+CORRELATION_OUTPUT_ROOT = OUTPUT_ROOT / "CorrelationAgeROI"
+CALIBRATION_OUTPUT_ROOT = OUTPUT_ROOT / "ThresholdCalibration"
+SUPPLEMENTARY_OUTPUT_ROOT = OUTPUT_ROOT / "Supplementary"
+PIXEL_OUTPUT_ROOT = OUTPUT_ROOT / "PixelSpacing"
+PIXEL_PREPROCESS_ROOT = PIXEL_OUTPUT_ROOT / "Preprocessing"
+PIXEL_TUNING_ROOT = PIXEL_OUTPUT_ROOT / "Tuning"
+PIXEL_NO_COMBAT_ROOT = PIXEL_OUTPUT_ROOT / "NoCombat"
+PIXEL_COMBAT_ROOT = PIXEL_OUTPUT_ROOT / "Combat"
+PIXEL_SUMMARY_ROOT = PIXEL_OUTPUT_ROOT / "Summary"
+
+BASELINE_OUTPUT_ROOT = PIPELINE_ROOT / "05_Baseline" / "Output"
+FIGURE_ROOT = PIPELINE_ROOT / "Figures"
+APP_ROOT = PIPELINE_ROOT / "06_RMPP_Prediction_App_CV"
+APP_MODEL_ROOT = APP_ROOT / "models"
+APP_VALIDATION_ROOT = APP_ROOT / "unet_validation_output"
+APP_BENCHMARK_ROOT = APP_ROOT / "benchmark_output"
+APP_DEPLOYMENT_OUTPUT_ROOT = APP_ROOT / "pipeline_consistency" / "output"
+
+DEFAULT_SAMPLING_COHORT = CLINICAL_ROOT / "sampling_cohort.xlsx"
+DEFAULT_CLINICAL_931 = CLINICAL_ROOT / "clinical_931.xlsx"
+DEFAULT_CLINICAL_SAV = CLINICAL_ROOT / "clinical_931.sav"
+DEFAULT_MODEL_DATA_931 = MODELING_INPUT_ROOT / "model_data_931.xlsx"
+DEFAULT_PIXEL_MODEL_DATA = PIXEL_INPUT_ROOT / "model_data_497.xlsx"
+
+
+def ensure_parent(path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path

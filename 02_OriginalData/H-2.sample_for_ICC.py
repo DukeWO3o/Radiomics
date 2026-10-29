@@ -1,35 +1,24 @@
-﻿# -*- coding: utf-8 -*-
-u'''
-=============================================================================
-Stratified Sampling for ROI Reproducibility Assessment (ICC / Dice)
-=============================================================================
-1. Load clinical+radiomics data (binary RMPP/non-RMPP only).
-2. Stratified random sample 50 CXR cases.
-3. Match each case to its 4 source files via:
-   - 01_PNG / 03_Binarized -> exact match by image column (pinyin)
-   - 00_DCM / 02_Mask     -> exact match by 姓名 column (Chinese name)
-4. Copy all matched source files into a dedicated folder for the 2nd
-   radiologist to work on.
-5. Export the sampling list + file-mapping table.
-=============================================================================
-'''
 import os, sys, shutil
+from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 import pandas as pd
-import numpy as np
 
-# ======================== CONFIGURATION ========================
-RADIOMICS_FILE = r'E:\Softwares\PycharmProject\Radiomics\03_MergedData\01_临床汇总完整版-v3-369-618-987.xlsx'
-SOURCE_ROOT    = r'F:\2023original'
-OUTPUT_DIR     = r'E:\Softwares\PycharmProject\Radiomics\02_OriginalData\02_ICC_sample'
+
+PIPELINE_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PIPELINE_ROOT))
+from pipeline_paths import DEFAULT_SAMPLING_COHORT, IMAGE_ROOT, OUTPUT_ROOT
+
+RADIOMICS_FILE = DEFAULT_SAMPLING_COHORT
+SOURCE_ROOT = IMAGE_ROOT
+OUTPUT_DIR = OUTPUT_ROOT / "Reproducibility"
 
 N_SAMPLE    = 50
 RANDOM_SEED = 42
 
 LABEL_COL  = 'label'
-IMAGE_COL  = 'image'          # pinyin filename, e.g. 'aikexin.png'
-NAME_COL   = '姓名'           # Chinese name,   e.g. '艾可馨'
+IMAGE_COL  = 'image'
+NAME_COL   = '姓名'
 
 SUBFOLDERS = {
     '00_DCM':       '.dcm',
@@ -38,14 +27,12 @@ SUBFOLDERS = {
     '03_Binarized': '.png',
 }
 
-OUTPUT_DIR_ROI = os.path.join(OUTPUT_DIR, 'ROI_review_50cases')  # copied files
+OUTPUT_DIR_ROI = os.path.join(OUTPUT_DIR, 'ROI_review_50cases')
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR_ROI, exist_ok=True)
 
-# ================================================================
-# 1. Load & clean data
-# ================================================================
+
 print('=' * 60)
 print('[1] Loading clinical+radiomics data ...')
 df_raw = pd.read_excel(RADIOMICS_FILE)
@@ -60,9 +47,7 @@ for col in [LABEL_COL, IMAGE_COL, NAME_COL]:
     if col not in df.columns:
         raise KeyError(f'Column "{col}" not found!')
 
-# ================================================================
-# 2. Stratified random sampling
-# ================================================================
+
 print()
 print('[2] Stratified sampling ({0} binary -> {1}) ...'.format(len(df), N_SAMPLE))
 
@@ -83,16 +68,14 @@ sampled_df = pd.concat(sampled_parts, ignore_index=True)
 for lbl, cnt in sampled_df[LABEL_COL].value_counts().sort_index().items():
     print(f'      label={lbl}: {cnt}')
 
-# ================================================================
-# 3. Build source-file inventory
-# ================================================================
+
 print()
 print('[3] Scanning source directories ...')
 
-pinyin_index = {}   # pinyin_base -> {subfolder: full_path}
-chinese_index = {}  # chinese_name -> {subfolder: full_path}
+pinyin_index = {}
+chinese_index = {}
 
-for group_dir in ['DCM', 'DCM-RMPP']:
+for group_dir in ['nonRMPP', 'RMPP']:
     for sub, ext in SUBFOLDERS.items():
         dirpath = os.path.join(SOURCE_ROOT, group_dir, sub)
         if not os.path.isdir(dirpath):
@@ -111,9 +94,7 @@ for group_dir in ['DCM', 'DCM-RMPP']:
 print(f'    Pinyin index  : {len(pinyin_index)} entries')
 print(f'    Chinese index : {len(chinese_index)} entries')
 
-# ================================================================
-# 4. Match + Copy source files
-# ================================================================
+
 print()
 print('[4] Matching & copying source files ...')
 
@@ -129,7 +110,7 @@ for _, row in sampled_df.iterrows():
     lbl = row[LABEL_COL]
     label_name = 'RMPP' if lbl == 1 else 'nonRMPP'
 
-    # Create case folder: ROI_review_50cases/{label}_{pinyin}/
+
     case_folder = os.path.join(OUTPUT_DIR_ROI,
                                '{0}_{1}'.format(label_name, pinyin))
     os.makedirs(case_folder, exist_ok=True)
@@ -137,14 +118,14 @@ for _, row in sampled_df.iterrows():
     rec = {'image': img_file, 'label': lbl, '姓名': chinese,
            'case_folder': case_folder}
 
-    # --- PNG & Binarized (pinyin match) ---
+
     for sub in ['01_PNG', '03_Binarized']:
         src = pinyin_index.get(pinyin, {}).get(sub, '')
         col = 'source_{0}'.format(sub)
         if src and os.path.isfile(src):
             rec[col] = src
             found += 1
-            # Copy to case folder, keep original filename
+
             dst = os.path.join(case_folder, os.path.basename(src))
             if not os.path.exists(dst):
                 shutil.copy2(src, dst)
@@ -153,7 +134,7 @@ for _, row in sampled_df.iterrows():
             rec[col] = 'NOT_FOUND'
             missing += 1
 
-    # --- DCM & Mask (Chinese name match) ---
+
     for sub in ['00_DCM', '02_Mask']:
         src = chinese_index.get(chinese, {}).get(sub, '')
         col = 'source_{0}'.format(sub)
@@ -175,23 +156,21 @@ total_slots = len(results) * 4
 print(f'    Matched: {found}/{total_slots}  |  Copied: {copied} files')
 print(f'    Missing: {missing}/{total_slots}')
 
-# ================================================================
-# 5. Export
-# ================================================================
+
 print()
 print('[5] Exporting ...')
 
-# 5a. Sampled radiomics subset
+
 radiomics_out = os.path.join(OUTPUT_DIR, 'sampled_50_cases_radiomics.xlsx')
 sampled_df.to_excel(radiomics_out, index=False)
 print('    {0}'.format(radiomics_out))
 
-# 5b. File mapping
+
 mapping_out = os.path.join(OUTPUT_DIR, 'sampled_50_cases_file_mapping.xlsx')
 result_df.to_excel(mapping_out, index=False)
 print('    {0}'.format(mapping_out))
 
-# 5c. Summary report
+
 missing_cases = result_df[
     ['source_{0}'.format(s) for s in SUBFOLDERS]
 ].eq('NOT_FOUND').any(axis=1)
@@ -204,8 +183,8 @@ report_lines = [
     'ROI Reproducibility Sampling Report',
     '=' * 60,
     '',
-    'Source data : ' + RADIOMICS_FILE,
-    'Source files: ' + SOURCE_ROOT,
+    'Source data : ' + str(RADIOMICS_FILE),
+    'Source files: ' + str(SOURCE_ROOT),
     'Binary cases: {0} (non-RMPP={1}, RMPP={2})'.format(
         len(df), stratum_sizes.get(0, 0), stratum_sizes.get(1, 0)),
     'Sampled     : {0} (non-RMPP={1}, RMPP={2}, seed={3})'.format(
@@ -215,7 +194,7 @@ report_lines = [
     '  Matched: {0}/{1}  |  Copied: {2} files'.format(found, total_slots, copied),
     '  Missing: {0}/{1}  ({2} cases with >=1 missing)'.format(missing, total_slots, n_missing),
     '',
-    'Copied to: ' + OUTPUT_DIR_ROI,
+    'Copied to: ' + str(OUTPUT_DIR_ROI),
     '  Folder structure:  {label}_{pinyin}/',
     '    e.g.  RMPP_anzining/',
     '          00_DCM/安紫宁.dcm     (if DCM matched)',
@@ -226,8 +205,6 @@ report_lines = [
     '',
 ]
 
-# Note: in the current version files are copied flat into each case folder
-# (not into sub-subfolders). This keeps it simple for the radiologist.
 
 if n_missing > 0:
     report_lines.append('Cases with missing source files:')
@@ -242,7 +219,7 @@ if n_missing > 0:
 report_lines += [
     'Next steps:',
     '  1. Have a 2nd radiologist independently delineate ROIs',
-    '     on the 50 CXR images in: ' + OUTPUT_DIR_ROI,
+    '     on the 50 CXR images in: ' + str(OUTPUT_DIR_ROI),
     '  2. Export new masks + run PyRadiomics feature extraction.',
     '  3. Calculate Dice coefficient between original & new masks.',
     '  4. Calculate ICC (two-way random, single rater) per feature.',

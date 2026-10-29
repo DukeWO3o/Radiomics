@@ -1,93 +1,56 @@
-﻿# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Python
-__pycache__/
-*.py[cod]
-*.class
-*.so
-*.egg-info/
-dist/
-build/
-.eggs/
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
-
-# Virtual environments
-venv/
-.venv/
-env/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Data files (large binary)
 *.dcm
-*.DCM
-*.nii.gz
-*.nii
-
-# Generated image directories (large, do not track)
-02_OriginalData/02_ICC_sample/ROI_review_50cases/
-06_Modelling/output/
-
-# Archives
-*.7z
-*.zip
-
-# Annotated manuscript drafts
-Manuscript3_annotated.docx
-Manuscript4.docx
-Manuscript4_copy.docx
-Reviewer 1.docx
-Reviewer 2.docx
-Reviewer 3.docx
-06_Modelling/output_lasso/
-Supplementary/
-
-# Manuscript folders (do not upload)
-European Journal of Pediatrics/
-Frontiers_Word_Templates/
-Pediatric Radiology/
-Manuscript/
-08_RMPP_Prediction_App/
-RMPP-APP/
-
-# ===== Patient-level data (PHI) - never commit =====
-# Images/masks: filenames are patient names or their pinyin
-00_DataSetSample/**/*.png
-# Radiomics/clinical tables: contain 姓名 / 住院号 / image=pinyin name
-00_DataSetSample/**/*.xlsx
-02_OriginalData/*.xlsx
-02_OriginalData/**/*.xlsx
-03_MergedData/*.xlsx
-04_FeatureSelection_Step_1/04*_Processing_Results_*/*_data.xlsx
-05_FeatureSelection_Step_2/**/train_*.xlsx
-05_FeatureSelection_Step_2/**/val_*.xlsx
-07_Baseline/*.sav
-_tmp_*.txt
-
-# Split manifests (image column stores pinyin patient names)
-**/00_Split_Manifest.xlsx
-**/00_Data_Split_Manifest.xlsx
-
-# Model binaries and patient manifests: KNN neighbours, SVM support vectors and
-# DataFrame indices embed training rows and pinyin patient names
+*.dicom
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.xlsx
+*.xls
+*.csv
+*.sav
 *.pkl
 *.joblib
-**/*Patient_Manifest.pkl
+*.pth
+*.pt
+*.7z
+*.zip
+*.pdf
 
-# App working copy: build artifacts, bundled models and demo data
-08_RMPP_Prediction_App_CV/build/
-08_RMPP_Prediction_App_CV/dist/
-08_RMPP_Prediction_App_CV/models/
-08_RMPP_Prediction_App_CV/demo/
-08_RMPP_Prediction_App_CV/__pycache__/
+00_InputData/**
+!00_InputData/**/
+!00_InputData/**/.gitkeep
+!00_InputData/**/README.md
 
-debug.log
+04_Modelling/**
+!04_Modelling/**/
+!04_Modelling/**/.gitkeep
+!04_Modelling/**/README.md
+
+05_Baseline/Output/**
+!05_Baseline/Output/
+!05_Baseline/Output/.gitkeep
+
+Figures/**
+!Figures/
+!Figures/.gitkeep
+
+06_RMPP_Prediction_App_CV/models/**
+!06_RMPP_Prediction_App_CV/models/
+!06_RMPP_Prediction_App_CV/models/.gitkeep
+
+06_RMPP_Prediction_App_CV/unet_validation_output/**
+!06_RMPP_Prediction_App_CV/unet_validation_output/
+!06_RMPP_Prediction_App_CV/unet_validation_output/.gitkeep
+
+06_RMPP_Prediction_App_CV/benchmark_output/**
+!06_RMPP_Prediction_App_CV/benchmark_output/
+!06_RMPP_Prediction_App_CV/benchmark_output/.gitkeep
+
+06_RMPP_Prediction_App_CV/pipeline_consistency/output/**
+!06_RMPP_Prediction_App_CV/pipeline_consistency/output/
+!06_RMPP_Prediction_App_CV/pipeline_consistency/output/.gitkeep
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
